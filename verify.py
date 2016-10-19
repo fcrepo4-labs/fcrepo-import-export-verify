@@ -3,14 +3,19 @@
 
 import argparse
 from hashlib import sha1
-import os.path
-import rdflib
-import rdflib.compare as compare
-import re
+from os.path import basename, isfile
+from rdflib import Graph, URIRef
+from rdflib.compare import isomorphic
+from re import search
 import requests
 import sys
 from urllib.parse import urlparse, quote
 
+
+
+#============================================================================
+# HELPER FUNCTIONS
+#============================================================================
 
 def is_binary(node, auth):
     '''Using link headers, determine whether a resource is rdf or non-rdf.'''
@@ -46,9 +51,9 @@ def get_child_nodes(node, auth):
     else:
         response = requests.get(node, auth=auth)
         if response.status_code == 200:
-            graph = rdflib.Graph()
+            graph = Graph()
             graph.parse(data=response.text, format="text/turtle")
-            predicate = rdflib.URIRef('http://www.w3.org/ns/ldp#contains')
+            predicate = URIRef('http://www.w3.org/ns/ldp#contains')
             children = [str(obj) for obj in graph.objects(
                             subject=None, predicate=predicate
                             )]
@@ -60,11 +65,13 @@ def get_child_nodes(node, auth):
 
 def get_directory_contents(localpath):
     '''Get the children based on the directory hierarchy.'''
-    if os.path.isfile(localpath):
-        return None
-    else:
-        return [p.path for p in os.scandir(localpath)]
+    return [p.path for p in os.scandir(localpath)]
 
+
+
+#============================================================================
+# CONFIGURATION CLASS
+#============================================================================
 
 class Config():
     '''Object representing the options from import/export config and 
@@ -75,6 +82,7 @@ class Config():
         with open(configfile, 'r') as f:
             opts = [line for line in f.read().split('\n')]
         
+        # interpret the options in the stored config file
         for line in range(len(opts)):
             if opts[line] == '-m':
                 self.mode = opts[line + 1]
@@ -95,10 +103,15 @@ class Config():
         if not hasattr(self, 'lang'):
             self.lang = 'text/turtle'
         
+        # split the repository URI into base and path components
         self.repopath = urlparse(self.repo).path
         self.repobase = self.repo[:-len(self.repopath)]
-        
 
+
+
+#============================================================================
+# ITERATOR CLASSES
+#============================================================================
 
 class Walker:
     '''Walk a set of Fedora resources.'''
@@ -136,16 +149,21 @@ class LocalWalker(Walker):
             raise StopIteration()
         else:
             current = self.to_check.pop()
-            if os.path.basename(current).startswith('.'):
+            # ignore hidden directories and files
+            if basename(current).startswith('.'):
                 return None
+            elif isfile(current):
+                return current
             else:
                 children = get_directory_contents(current)
                 if children:
                     self.to_check.extend(children)
-                    return None
-                else:
-                    return current
+                return None
 
+
+#============================================================================
+# MAIN RESOURCE CLASS
+#============================================================================
 
 class Resource():
     '''Object representing any resource, either local or in fcrepo.'''
@@ -153,48 +171,60 @@ class Resource():
     
         self.origpath = inputpath
         
+        # handle fcrepo resources
         if self.origpath.startswith(config.repo):
             self.location = 'fcrepo'
-            self.relpath = urlparse(self.origpath).path
+            self.relpath = urlparse(self.origpath).path.rstrip('/')
             
             if is_binary(self.origpath, config.auth):
                 self.type = 'binary'
                 self.metadata = self.origpath + '/fcr:metadata'
                 self.destpath = quote((config.bin + self.relpath + '.binary'))
                 response = requests.get(self.metadata, auth=config.auth)
-                self.filename = re.search(
+                self.filename = search(
                     r'ebucore:filename \"(.+?)\"', response.text
                     ).group(1)
-                self.sha1 = re.search(
+                self.sha1 = search(
                     r'premis:hasMessageDigest <urn:sha1:(.+?)>', response.text
                     ).group(1)
             else:
                 self.type = 'rdf'
                 self.destpath = quote((config.desc + self.relpath + config.ext))
-                self.graph = rdflib.Graph().parse(self.origpath)
+                self.graph = Graph().parse(self.origpath)
         
+        # handle binary resources on disk
         elif self.origpath.startswith(config.bin):
             self.location = 'local'
             self.type = 'binary'
             self.relpath = self.origpath[len(config.bin):]
             if not self.relpath.endswith('.binary'):
-                print('ERROR: Binary resource lacks expected extension!')
+                print('ERROR: Binary resource ' + 
+                      '{0} lacks expected extension!'.format(self.origpath)
+                      )
             self.destpath = config.repobase + self.relpath[:-len('.binary')]
             self.sha1 = calculate_sha1(self.origpath)
-            
+        
+        # handle metadata resources on disk
         elif self.origpath.startswith(config.desc):
             self.location = 'local'
             self.type = 'rdf'
             self.relpath = self.origpath[len(config.desc):]
             if not self.relpath.endswith(config.ext):
-                print('ERROR: RDF resource lacks expected extension!')
+                print('ERROR: RDF resource ' + 
+                      'lacks expected extension!'.format(self.origpath)
+                      )
             self.destpath = config.repobase + self.relpath[:-len(config.ext)]
-            self.graph = rdflib.Graph().parse(location=self.origpath,
-                                              format=config.lang
-                                              )
+            self.graph = Graph().parse(location=self.origpath,
+                                       format=config.lang
+                                       )
         else:
             print("ERROR reading resource at {0}.".format(self.origpath))
 
+
+
+#============================================================================
+# MAIN FUNCTION
+#============================================================================
 
 def main():
 
@@ -279,7 +309,7 @@ def main():
                             )
                 
                 elif original.type == 'rdf':
-                    if compare.isomorphic(original.graph, destination.graph):
+                    if isomorphic(original.graph, destination.graph):
                         verified = True
                         verification = "{0} triples match".format(
                                         len(original.graph)
@@ -322,5 +352,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
