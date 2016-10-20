@@ -5,6 +5,7 @@ import argparse
 from csv import DictWriter
 from hashlib import sha1
 from os.path import basename, isfile
+from os import stat
 from rdflib import Graph, URIRef
 from rdflib.compare import isomorphic
 from re import search
@@ -177,17 +178,24 @@ class Resource():
             self.location = 'fcrepo'
             self.relpath = urlparse(self.origpath).path.rstrip('/')
             
+            # non-RDF sources
             if is_binary(self.origpath, config.auth):
                 self.type = 'binary'
                 self.metadata = self.origpath + '/fcr:metadata'
                 self.destpath = quote((config.bin + self.relpath + '.binary'))
                 response = requests.get(self.metadata, auth=config.auth)
-                self.filename = search(
-                    r'ebucore:filename \"(.+?)\"', response.text
-                    ).group(1)
-                self.sha1 = search(
+                
+                # filename as stored in fcrepo
+                fn_match = search(r'ebucore:filename \"(.+?)\"', response.text)
+                self.filename = fn_match.group(1) if fn_match else ""
+                
+                # sha1 checksum as stored in fcrepo
+                sh_match = search(
                     r'premis:hasMessageDigest <urn:sha1:(.+?)>', response.text
-                    ).group(1)
+                    )
+                self.sha1 = sh_match.group(1) if sh_match else ""
+            
+            # RDF sources    
             else:
                 self.type = 'rdf'
                 self.destpath = quote((config.desc + self.relpath + config.ext))
@@ -288,9 +296,10 @@ def main():
         
     # Set up log file, if specified
     if args.log:
-        fieldnames = ['n', 'type', 'original', 'destination', 'verified',
+        logfile = open(args.log, 'w')
+        fieldnames = ['number', 'type', 'original', 'destination', 'verified',
                       'verification']
-        writer = DictWriter(open(args.log, 'w'), fieldnames=fieldnames)
+        writer = DictWriter(logfile, fieldnames=fieldnames)
         writer.writeheader()
         
     counter = 1
@@ -303,6 +312,9 @@ def main():
                 destination = Resource(original.destpath, config)
                 
                 if original.type == 'binary':
+                    '''if destination.sha1 is None:
+                        verified = False
+                        verification = "external resource"'''
                     if original.sha1 == destination.sha1:
                         verified = True
                         verification = original.sha1
