@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+from csv import DictWriter
 from hashlib import sha1
 from os.path import basename, isfile
 from rdflib import Graph, URIRef
@@ -193,7 +194,8 @@ class Resource():
                 self.graph = Graph().parse(self.origpath)
         
         # handle binary resources on disk
-        elif self.origpath.startswith(config.bin):
+        elif (self.origpath.startswith(config.bin) and 
+              self.origpath.endswith('.binary')):
             self.location = 'local'
             self.type = 'binary'
             self.relpath = self.origpath[len(config.bin):]
@@ -205,7 +207,8 @@ class Resource():
             self.sha1 = calculate_sha1(self.origpath)
         
         # handle metadata resources on disk
-        elif self.origpath.startswith(config.desc):
+        elif (self.origpath.startswith(config.desc) and 
+              self.origpath.endswith(config.ext)):
             self.location = 'local'
             self.type = 'rdf'
             self.relpath = self.origpath[len(config.desc):]
@@ -285,9 +288,10 @@ def main():
         
     # Set up log file, if specified
     if args.log:
-        logfile = open(args.log, 'w')
-    else:
-        logfile = sys.stdout
+        fieldnames = ['n', 'type', 'original', 'destination', 'verified',
+                      'verification']
+        writer = DictWriter(open(args.log, 'w'), fieldnames=fieldnames)
+        writer.writeheader()
         
     counter = 1
     
@@ -311,7 +315,7 @@ def main():
                 elif original.type == 'rdf':
                     if isomorphic(original.graph, destination.graph):
                         verified = True
-                        verification = "{0} triples match".format(
+                        verification = "{0} triples".format(
                                         len(original.graph)
                                         )
                     else:
@@ -336,11 +340,17 @@ def main():
                 else:
                     print("Checked {0} resources...".format(counter), end='\r')
                 
-                # Log results to logger report
-                logfile.write(','.join([str(counter), original.type,
-                                        original.origpath, original.destpath, 
-                                        str(verified), verification]
-                                        ) + '\n')
+                # If a log has been specified, write results to CSV log
+                if args.log:
+                    row = { 'number':       str(counter), 
+                            'type':         original.type,
+                            'original':     original.origpath, 
+                            'destination':  original.destpath, 
+                            'verified':     str(verified), 
+                            'verification': verification
+                            }
+                    writer.writerow(row)
+                    
                 counter += 1
     
     # Clear the resource counter display
