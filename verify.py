@@ -5,7 +5,7 @@ import argparse
 from csv import DictWriter
 from hashlib import sha1
 from os.path import basename, isfile
-from os import stat
+from os import scandir, stat
 from rdflib import Graph, URIRef
 from rdflib.compare import isomorphic
 from re import search
@@ -67,7 +67,7 @@ def get_child_nodes(node, auth):
 
 def get_directory_contents(localpath):
     '''Get the children based on the directory hierarchy.'''
-    return [p.path for p in os.scandir(localpath)]
+    return [p.path for p in scandir(localpath)]
 
 
 
@@ -230,6 +230,7 @@ class Resource():
                                        )
         else:
             print("ERROR reading resource at {0}.".format(self.origpath))
+            sys.exit(1)
 
 
 
@@ -263,9 +264,15 @@ def main():
                         default=None
                         )
     
+    parser.add_argument('-c', '--csv',
+                        help='''Path to file to store summary csv data.''',
+                        action='store',
+                        required=False,
+                        default=None
+                        )
+    
     parser.add_argument('-l', '--log',
-                        help='''Path to file to store output. 
-                                Defaults to stdout.''',
+                        help='''Path to log file.''',
                         action='store',
                         required=False,
                         default=None
@@ -294,12 +301,12 @@ def main():
     elif config.mode == 'import':
         trees = [LocalWalker(config.bin), LocalWalker(config.desc)]
         
-    # Set up log file, if specified
-    if args.log:
-        logfile = open(args.log, 'w')
+    # Set up csv file, if specified
+    if args.csv:
+        csvfile = open(args.csv, 'w')
         fieldnames = ['number', 'type', 'original', 'destination', 'verified',
                       'verification']
-        writer = DictWriter(logfile, fieldnames=fieldnames)
+        writer = DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         
     counter = 1
@@ -334,7 +341,7 @@ def main():
                         verified = False
                         verification = ('{0}+{1} triples - mismatch'.format(
                                             len(original.graph),
-                                            len(desination.graph)
+                                            len(destination.graph)
                                             ))
                 
                 # If verbose flag is set, print full resource details to screen
@@ -353,7 +360,7 @@ def main():
                     print("Checked {0} resources...".format(counter), end='\r')
                 
                 # If a log has been specified, write results to CSV log
-                if args.log:
+                if args.csv:
                     row = { 'number':       str(counter), 
                             'type':         original.type,
                             'original':     original.origpath, 
@@ -368,8 +375,8 @@ def main():
     # Clear the resource counter display
     print('')
 
-    if args.log:
-        logfile.close()
+    if args.csv:
+        csvfile.close()
 
 
 if __name__ == "__main__":
