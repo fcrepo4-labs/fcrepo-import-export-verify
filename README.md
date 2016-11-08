@@ -8,10 +8,10 @@ $ git clone http://github.com/fcrepo4-labs/fcrepo-import-export-verify
 $ cd fcrepo-import-export-verify
 $ pip3 install -r requirements.txt
 ```
-Note: pip3 is recommended for use of the script with Python3, to install dependencies for Python2, use the 'pip' command.
+Note: 'pip3' is the required command for the installation of dependencies in the local Python3 environment (the recommended interpreter); to install dependencies for use with Python2 instead, simply use the equivalent 'pip' command.
 
 ## Usage
-
+The simplest scenario is to run the script with a single argument pointing to the location of the import/export configuration file. If you did not specify a configuration file, the import/export tool should have created it in a temporary location specified at the beginning of its run.  Optional additional arguments are described below.
 ```
 Usage: verify.py [-h] [-u USER] [-c CSV] [-l LOG] [-v] configfile
 
