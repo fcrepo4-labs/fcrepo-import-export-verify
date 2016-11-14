@@ -15,17 +15,20 @@ The simplest scenario is to run the script with a single argument pointing to th
 
 This same configuration file is used by the verification tool to set up the verification process, and is the only required argument. Optional additional arguments for the are described below.
 ```
-Usage: verify.py [-h] [-u USER] [-c CSV] [-l LOG] [-v] configfile
+usage: verify.py [-h] [-u USER] [-c CSV] [-l LOG] [-v] configfile
 
-Compare two sets of Fedora resources, either in fcrepo or serialized on disk.
+Compare two sets of Fedora resources (in live fcrepo or serialized to disk)
+and verify their sameness.
 
 positional arguments:
   configfile            Path to an import/export config file.
 
 optional arguments:
-  -h, --help            Show this help message and exit.
+  -h, --help            show this help message and exit
   -u USER, --user USER  Repository credentials in the form username:password.
   -c CSV, --csv CSV     Path to CSV file (to store summary data).
-  -l LOG, --log LOG     Path to log file (to store details of verification run).
-  -v, --verbose         Show detailed info for each checked resource on screen.
+  -l LOG, --log LOG     Path to log file (to store details of verification
+                        run).
+  -v, --verbose         Show detailed info for each resource checked on
+                        screen.
 ```
