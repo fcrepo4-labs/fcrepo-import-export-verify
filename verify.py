@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 import argparse
 from csv import DictWriter
 from hashlib import sha1
+import logging
 from os.path import basename, isfile
 from os import scandir, stat
 from rdflib import Graph, URIRef
@@ -251,8 +254,9 @@ def main():
                 )
 
     parser = argparse.ArgumentParser(
-                        description='''Compare two sets of Fedora resources, 
-                        either in fcrepo or serialized on disk.'''
+                        description='''Compare two sets of Fedora resources (in
+                        live fcrepo or serialized to disk) and verify their
+                        sameness.'''
                         )
         
     parser.add_argument('-u', '--user',
@@ -265,21 +269,22 @@ def main():
                         )
     
     parser.add_argument('-c', '--csv',
-                        help='''Path to file to store summary csv data.''',
+                        help='''Path to CSV file (to store summary data).''',
                         action='store',
                         required=False,
                         default=None
                         )
     
     parser.add_argument('-l', '--log',
-                        help='''Path to log file.''',
+                        help='''Path to log file (to store details of 
+                        verification run).''',
                         action='store',
                         required=False,
                         default=None
                         )
     
     parser.add_argument('-v', '--verbose',
-                        help='''Show details of each resource checked on 
+                        help='''Show detailed info for each resource checked on 
                                 screen.''',
                         action='store_true',
                         required=False,
@@ -287,7 +292,7 @@ def main():
                         )
                         
     parser.add_argument('configfile',
-                        help='''Path to import/export config file.''',
+                        help='''Path to an import/export config file.''',
                         action='store'
                         )
                         
@@ -308,6 +313,12 @@ def main():
                       'verification']
         writer = DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
+        
+    # Set up log file, if specified
+    if args.log:
+        logger = logging.getLogger('output')
+        filehandler = logging.FileHandler(filename=args.log, mode='w')
+        logger.addHandler(filehandler)
         
     counter = 1
     
@@ -359,7 +370,7 @@ def main():
                 else:
                     print("Checked {0} resources...".format(counter), end='\r')
                 
-                # If a log has been specified, write results to CSV log
+                # If a CSV summary file has been specified, write results there
                 if args.csv:
                     row = { 'number':       str(counter), 
                             'type':         original.type,
