@@ -96,7 +96,7 @@ class Config():
             elif opts[line] == '-d':
                 self.desc = opts[line + 1]
             elif opts[line] == '-b':
-                self.bin = opts[line + 1]
+                self.bin = self.desc
             elif opts[line] == '-x':
                 self.ext = opts[line + 1]
             elif opts[line] == '-l':
