@@ -26,14 +26,25 @@ created one in a temporary location that is displayed in the tool's screen outpu
 near the beginning of its run.
 
 This same configuration file is used by the verification tool to set up the verification
-process, and is the only required argument. Optional additional arguments for the are
+process, and is the only required argument. Optional additional arguments for the tool are
 described below.
 
-```
-usage: verify.py [-h] [-u USER] [-c CSV] [-l LOG] [-v] configfile
+### Logging
+Information about errors or discrepancies found will be output to the log file and to the
+screen.  To have the tool output information about each resource being examined include the `-v` flag.
+Information about each resource being looked at will then be sent to standard out.
 
-Compare two sets of Fedora resources (in live fcrepo or serialized to disk)
-and verify their sameness.
+The default log level for the log file is `INFO` and the default log file is `./verify_output.txt`
+
+A CSV file can be created.  It will contain information about each resource and how it compared
+to it's counterpart in the other system.
+
+```
+usage: verify.py [-h] [-u USER] [-c CSV] [-l LOG] [--loglevel LOGLEVEL] [-v]
+                 configfile
+
+Compare two sets of Fedora resources (in live Fedora server or serialized to
+disk) and verify their sameness.
 
 positional arguments:
   configfile            Path to an import/export config file.
@@ -44,6 +55,7 @@ optional arguments:
   -c CSV, --csv CSV     Path to CSV file (to store summary data).
   -l LOG, --log LOG     Path to log file (to store details of verification
                         run).
-  -v, --verbose         Show detailed info for each resource checked on
-                        screen.
+  --loglevel LOGLEVEL   Level of information to output (INFO, WARN, DEBUG,
+                        ERROR)
+  -v, --verbose         Show detailed info for each resource checked
 ```
