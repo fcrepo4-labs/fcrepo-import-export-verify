@@ -17,8 +17,6 @@ import requests
 import sys
 from urllib.parse import urlparse, quote
 
-
-
 #============================================================================
 # HELPER FUNCTIONS
 #============================================================================
@@ -38,7 +36,6 @@ def is_binary(node, auth, logger):
             response.status_code, node))
         sys.exit(1)
 
-
 def calculate_sha1(filepath):
     '''Given a file or stream, return the sha1 checksum.'''
     with open(filepath, 'rb') as f:
@@ -49,7 +46,6 @@ def calculate_sha1(filepath):
                 break
             sh.update(data)
     return sh.hexdigest()
-
 
 def get_child_nodes(node, auth, logger):
     '''Get the children based on LDP containment.'''
@@ -70,12 +66,9 @@ def get_child_nodes(node, auth, logger):
             logger.error("Error communicating with repository.")
             sys.exit(1)
 
-
 def get_directory_contents(localpath):
     '''Get the children based on the directory hierarchy.'''
     return [p.path for p in scandir(localpath)]
-
-
 
 #============================================================================
 # CONFIGURATION CLASS
@@ -113,8 +106,6 @@ class Config():
         self.repopath = urlparse(self.repo).path
         self.repobase = self.repo[:-len(self.repopath)]
 
-
-
 #============================================================================
 # ITERATOR CLASSES
 #============================================================================
@@ -127,7 +118,6 @@ class Walker:
 
     def __iter__(self):
         return self
-
 
 class FcrepoWalker(Walker):
     '''Walk resources in a live repository.'''
@@ -144,7 +134,6 @@ class FcrepoWalker(Walker):
             if children:
                 self.to_check.extend(children)
             return current
-
 
 class LocalWalker(Walker):
     '''Walk serialized resources on disk.'''
@@ -166,7 +155,6 @@ class LocalWalker(Walker):
                 if children:
                     self.to_check.extend(children)
                 return None
-
 
 #============================================================================
 # MAIN RESOURCE CLASS
@@ -243,8 +231,6 @@ class Resource():
             print("ERROR reading resource at {0}.".format(self.origpath))
             self.logger.error("ERROR reading resource at {0}.".format(self.origpath))
             sys.exit(1)
-
-
 
 #============================================================================
 # MAIN FUNCTION
@@ -407,7 +393,6 @@ def main():
                     logger.info("  Verifying original to copy... {0} -- {1}".format(
                          verified, verification))
 
-
                 # If a CSV summary file has been specified, write results there
                 if args.csv:
                     row = { 'number':       str(counter),
@@ -427,7 +412,6 @@ def main():
 
     if args.csv:
         csvfile.close()
-
 
 if __name__ == "__main__":
     main()
