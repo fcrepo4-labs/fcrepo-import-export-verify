@@ -17,6 +17,8 @@ import requests
 import sys
 from urllib.parse import urlparse, quote
 
+
+
 #============================================================================
 # HELPER FUNCTIONS
 #============================================================================
@@ -87,7 +89,7 @@ class Config():
         logger.info('  \'{0}\''.format(configfile))
         self.auth = auth
         with open(configfile, 'r') as f:
-            opts = [line for line in f.read().split('\n')]
+            opts = f.read().split('\n')
 
         # interpret the options in the stored config file
         for line in range(len(opts)):
@@ -96,18 +98,15 @@ class Config():
             elif opts[line] == '-r':
                 self.repo = opts[line + 1]
             elif opts[line] == '-d':
-                self.desc = opts[line + 1]
+                self.dir = opts[line + 1]
             elif opts[line] == '-b':
-                self.bin = self.desc
-            elif opts[line] == '-x':
-                self.ext = opts[line + 1]
+                self.bin = True
             elif opts[line] == '-l':
                 self.lang = opts[line + 1]
 
         # if not specified in config, set default ext & lang to turtle
-        if not hasattr(self, 'ext'):
-            self.ext = '.ttl'
         if not hasattr(self, 'lang'):
+            self.ext = '.ttl'
             self.lang = 'text/turtle'
 
         # split the repository URI into base and path components
@@ -188,7 +187,7 @@ class Resource():
             if is_binary(self.origpath, config.auth, self.logger):
                 self.type = 'binary'
                 self.metadata = self.origpath + '/fcr:metadata'
-                self.destpath = quote((config.bin + self.relpath + '.binary'))
+                self.destpath = quote((config.dir + self.relpath + '.binary'))
                 response = requests.get(self.metadata, auth=config.auth)
 
                 # filename as stored in fcrepo
@@ -204,15 +203,15 @@ class Resource():
             # RDF sources
             else:
                 self.type = 'rdf'
-                self.destpath = quote((config.desc + self.relpath + config.ext))
+                self.destpath = quote((config.dir + self.relpath + config.ext))
                 self.graph = Graph().parse(self.origpath)
 
         # handle binary resources on disk
-        elif (self.origpath.startswith(config.bin) and
+        elif (self.origpath.startswith(config.dir) and
               self.origpath.endswith('.binary')):
             self.location = 'local'
             self.type = 'binary'
-            self.relpath = self.origpath[len(config.bin):]
+            self.relpath = self.origpath[len(config.dir):]
             if not self.relpath.endswith('.binary'):
                 print('ERROR: Binary resource ' +
                       '{0} lacks expected extension!'.format(self.origpath)
@@ -224,11 +223,11 @@ class Resource():
             self.sha1 = calculate_sha1(self.origpath)
 
         # handle metadata resources on disk
-        elif (self.origpath.startswith(config.desc) and
+        elif (self.origpath.startswith(config.dir) and
               self.origpath.endswith(config.ext)):
             self.location = 'local'
             self.type = 'rdf'
-            self.relpath = self.origpath[len(config.desc):]
+            self.relpath = self.origpath[len(config.dir):]
             if not self.relpath.endswith(config.ext):
                 print('ERROR: RDF resource ' +
                       'lacks expected extension!'.format(self.origpath)
@@ -300,6 +299,7 @@ def main():
                         required=False,
                         default='INFO'
                         )
+                        
     parser.add_argument('-v', '--verbose',
                         help='''Show detailed info for each resource checked''',
                         action='store_true',
@@ -336,7 +336,7 @@ def main():
     if config.mode == 'export':
         trees = [FcrepoWalker(config.repo, args.user, logger)]
     elif config.mode == 'import':
-        trees = [LocalWalker(config.bin, logger), LocalWalker(config.desc, logger)]
+        trees = [LocalWalker(config.dir, logger)]
 
     logger.info("\nRunning verification on Fedora 4 {0}".format(config.mode))
     print("\nRunning verification on Fedora 4 {0}".format(config.mode))
