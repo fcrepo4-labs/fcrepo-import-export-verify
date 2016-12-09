@@ -84,6 +84,8 @@ class Config():
         with open(configfile, 'r') as f:
             opts = f.read().split('\n')
 
+        # initialize binaries option (will be overidden below if in config)
+        self.bin = False
         # interpret the options in the stored config file
         for line in range(len(opts)):
             if opts[line] == '-m':
@@ -335,6 +337,13 @@ def main():
             if filepath is not None:
 
                 original = Resource(filepath, config, logger)
+                
+                # skip binaries and fcr:metadata if no binaries exported
+                if not config.bin:
+                    if original.type == "binary" or \
+                        original.origpath.endswith('/fcr:metadata'):
+                        continue
+                
                 destination = Resource(original.destpath, config, logger)
 
                 if original.type == 'binary':
