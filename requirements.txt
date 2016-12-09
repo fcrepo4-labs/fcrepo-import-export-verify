@@ -2,3 +2,4 @@ isodate==0.5.4
 pyparsing==2.1.10
 rdflib==4.2.1
 requests==2.11.1
+pyyaml==3.10

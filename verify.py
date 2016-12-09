@@ -16,6 +16,11 @@ from re import search
 import requests
 import sys
 from urllib.parse import urlparse, quote
+from yaml import load, dump
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
 
 #============================================================================
 # HELPER FUNCTIONS
@@ -81,23 +86,27 @@ class Config():
         logger.info('\nLoading configuration options from import/export config file: ')
         logger.info('  \'{0}\''.format(configfile))
         self.auth = auth
+
         with open(configfile, 'r') as f:
-            opts = f.read().split('\n')
+            yaml_data = f.read()
+
+        opts = load(yaml_data, Loader=Loader)
 
         # initialize binaries option (will be overidden below if in config)
         self.bin = False
         # interpret the options in the stored config file
-        for line in range(len(opts)):
-            if opts[line] == '-m':
-                self.mode = opts[line + 1]
-            elif opts[line] == '-r':
-                self.repo = opts[line + 1]
-            elif opts[line] == '-d':
-                self.dir = opts[line + 1]
-            elif opts[line] == '-b':
-                self.bin = True
-            elif opts[line] == '-l':
-                self.lang = opts[line + 1]
+        for key, value in opts.items():
+            print("key (" + str(key) + ") and (" + str(value) + ")")
+            if key == "mode":
+                self.mode = value
+            elif key == "resource":
+                self.repo = value
+            elif key == "dir":
+                self.dir = value
+            elif key == "binaries":
+                self.bin = value
+            elif key == "rdfLang":
+                self.lang = value
 
         # if not specified in config, set default ext & lang to turtle
         if not hasattr(self, 'lang'):
