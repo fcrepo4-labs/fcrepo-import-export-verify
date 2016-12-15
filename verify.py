@@ -204,7 +204,7 @@ class Resource():
                 self.type = 'rdf'
                 self.destpath = quote((config.dir + self.relpath + config.ext))
                 response = requests.get(self.origpath, auth=config.auth)
-                if response.statuscode == 200:
+                if response.status_code == 200:
                     self.graph = Graph().parse(data=response.text, format="text/turtle")
 
         # handle binary resources on disk
