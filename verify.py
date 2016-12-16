@@ -231,7 +231,7 @@ class FedoraResource(Resource):
         response = requests.get(self.metadata, auth=self.config.auth)
         if response.status_code == 200:
             m = search(
-                r'premis:hasMessageDigest <urn:sha1:(.+?)>', response.text
+                r'premis:hasMessageDigest[\s]+<urn:sha1:(.+?)>', response.text
                 )
             self.sha1 = m.group(1) if m else ""
             return True
