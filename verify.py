@@ -38,9 +38,8 @@ EXT_MAP = {'application/ld+json':   '.json',
 
 def get_child_nodes(node, auth, logger):
     '''Get the children based on LDP containment.'''
-    print('checking children')
     head = requests.head(url=node, auth=auth)
-    if head.status_code == 200 or head.status_code == 307:
+    if head.status_code in [200, 307]:
         if head.links["type"]["url"] == 'http://www.w3.org/ns/ldp#NonRDFSource':
             metadata = [node + "/fcr:metadata"]
             return metadata
@@ -68,8 +67,8 @@ class Config():
     '''Object representing the options from import/export config and
        command-line arguments.'''
     def __init__(self, configfile, auth, logger):
-        logger.info('\nLoading configuration options from import/export config file: ')
-        logger.info('  \'{0}\''.format(configfile))
+        logger.info("\nLoading configuration options from config file:")
+        logger.info("  '{0}'".format(configfile))
         self.auth = auth
 
         with open(configfile, 'r') as f:
@@ -127,9 +126,9 @@ class Walker:
 
 class FcrepoWalker(Walker):
     '''Walk resources in a live repository.'''
-    def __init__(self, root, auth, logger):
-        Walker.__init__(self, root, logger)
-        self.auth = auth
+    def __init__(self, config, logger):
+        Walker.__init__(self, config.repo, logger)
+        self.auth = config.auth
 
     def __next__(self):
         if not self.to_check:
@@ -144,7 +143,7 @@ class FcrepoWalker(Walker):
 class LocalWalker(Walker):
     '''Walk serialized resources on disk.'''
     def __init__(self, root, logger):
-        Walker.__init__(self, root, logger)
+        Walker.__init__(self, config.dir, logger)
 
     def __next__(self):
         if not self.to_check:
@@ -186,6 +185,7 @@ class FedoraResource(Resource):
         self.fetch_headers()
         if self.is_binary():
             self.type = "binary"
+            self.metadata = self.origpath + '/fcr:metadata'
             if self.external:
                 self.destpath = quote(
                     (self.config.dir + self.relpath + '.external')
@@ -228,8 +228,7 @@ class FedoraResource(Resource):
                 return False
     
     def lookup_sha1(self):
-        self.metadata_node = self.origpath + '/fcr:metadata'
-        response = requests.get(self.metadata_node, auth=self.config.auth)
+        response = requests.get(self.metadata, auth=self.config.auth)
         if response.status_code == 200:
             m = search(
                 r'premis:hasMessageDigest <urn:sha1:(.+?)>', response.text
@@ -371,24 +370,27 @@ def main():
     # Create configuration object and setup import/export iterators
     config = Config(args.configfile, args.user, logger)
     if config.mode == 'export':
-        tree = FcrepoWalker(config.repo, args.user, logger)
+        tree = FcrepoWalker(config, logger)
     elif config.mode == 'import':
-        tree = [LocalWalker(config.dir, logger)]
+        tree = LocalWalker(config, logger)
 
     logger.info("\nRunning verification on Fedora 4 {0}".format(config.mode))
     print("\nRunning verification on Fedora 4 {0}".format(config.mode))
 
-    counter = 1
+    counter = 0
 
     # Step through the tree and verify resources
-    
     for filepath in tree:
+        counter += 1
         # iterator can return None, in which case skip
         if filepath is not None:
             if filepath.startswith(config.repo):
                 original = FedoraResource(filepath, config, logger)
-            else:
+            elif filepath.startswith(config.dir):
                 original = LocalResource(filepath, config, logger)
+            else:
+                logger.warn("Resource not in path specified in config file.")
+                sys.exit(1)
             
             # skip binaries and fcr:metadata if no binaries exported
             if not config.bin:
@@ -398,7 +400,7 @@ def main():
             
             if filepath.startswith(config.repo):
                 destination = LocalResource(original.destpath, config, logger)
-            else:
+            elif filepath.startswith(config.dir):
                 destination = FedoraResource(original.destpath, config, logger)
 
             if original.type == 'binary':
@@ -468,11 +470,9 @@ def main():
                         }
                 writer.writerow(row)
 
-            counter += 1
-
     # Clear the resource counter display
     print('')
-    logger.info("Verified {} resources".format(counter-1))
+    logger.info("Verified {} resources".format(counter))
 
     if args.csv:
         csvfile.close()
