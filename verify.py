@@ -22,6 +22,16 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
+EXT_MAP = {'application/ld+json':   '.json',
+           'application/n-triples': '.nt',
+           'application/rdf+xml':   '.xml',
+           'text/n3':               '.n3',
+           'text/rdf+n3':           '.n3',
+           'text/plain':            '.txt',
+           'text/turtle':           '.ttl',
+           'application/x-turtle':  '.ttl'
+           }
+
 #============================================================================
 # HELPER FUNCTIONS
 #============================================================================
@@ -108,10 +118,20 @@ class Config():
             elif key == "rdfLang":
                 self.lang = value
 
-        # if not specified in config, set default ext & lang to turtle
+        # if lang not specified in config, set the ext & lang to turtle
         if not hasattr(self, 'lang'):
             self.ext = '.ttl'
             self.lang = 'text/turtle'
+        # set the ext based on the rdfLang
+        else:
+            if self.lang in EXT_MAP:
+                self.ext = EXT_MAP[self.lang]
+            else:
+                logger.error(
+                    'Unrecognized RDF serialization specified in config file!'
+                    )
+                print('Unrecognized RDF serialization specified in config file!')
+                sys.exit(1)
 
         # split the repository URI into base and path components
         self.repopath = urlparse(self.repo).path
