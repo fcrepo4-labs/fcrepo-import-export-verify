@@ -4,3 +4,4 @@ rdflib==4.2.1
 rdflib_jsonld==0.4.0
 requests==2.11.1
 pyyaml==3.10
+flake8==3.3.0
