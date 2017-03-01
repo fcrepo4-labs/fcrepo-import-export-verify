@@ -456,7 +456,7 @@ def main():
                                         len(destination.graph)
                                         ))
 
-            # always tell user if something doesn"t match
+            # always tell user if something doesn't match
             if not verified:
                 print("\nWARN: Resource Mismatch \"{}\"".format(
                     original.relpath))
