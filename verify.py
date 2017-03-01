@@ -34,6 +34,8 @@ EXT_MAP = {"application/ld+json":   ".json",
 LDP_NON_RDF_SOURCE = "http://www.w3.org/ns/ldp#NonRDFSource"
 LDP_CONTAINS = "http://www.w3.org/ns/ldp#contains"
 
+EXT_BINARY_INTERNAL = ".binary"
+EXT_BINARY_EXTERNAL = ".external"
 
 # ============================================================================
 # HELPER FUNCTIONS
@@ -203,11 +205,11 @@ class FedoraResource(Resource):
             self.metadata = self.origpath + "/fcr:metadata"
             if self.external:
                 self.destpath = quote(
-                    (self.config.dir + self.relpath + ".external")
+                    (self.config.dir + self.relpath + EXT_BINARY_EXTERNAL)
                     )
             else:
                 self.destpath = quote(
-                    (self.config.dir + self.relpath + ".binary")
+                    (self.config.dir + self.relpath + EXT_BINARY_INTERNAL)
                     )
             self.lookup_sha1()
         else:
@@ -260,14 +262,26 @@ class LocalResource(Resource):
         Resource.__init__(self, inputpath, config, logger)
         self.location = "local"
         self.relpath = self.origpath[len(config.dir):]
+        urlinfo = urlparse(config.repo)
+        config_repo = urlinfo.scheme + "://" + urlinfo.netloc
         if self.is_binary():
             self.type = "binary"
-            self.destpath = config.repo + self.relpath[:-len(".binary")]
+            self.external = False
+            if self.origpath.endswith(EXT_BINARY_EXTERNAL):
+                self.external = True
+
+            if self.external:
+                self.destpath = config_repo + \
+                        self.relpath[:-len(EXT_BINARY_EXTERNAL)]
+            else:
+                self.destpath = config_repo + \
+                        self.relpath[:-len(EXT_BINARY_INTERNAL)]
+
             self.sha1 = self.calculate_sha1()
         elif self.origpath.startswith(config.dir) and \
                 self.origpath.endswith(config.ext):
             self.type = "rdf"
-            self.destpath = config.repo + self.relpath[:-len(config.ext)]
+            self.destpath = config_repo + self.relpath[:-len(config.ext)]
             self.graph = Graph().parse(
                 location=self.origpath, format=config.lang
                 )
@@ -279,8 +293,8 @@ class LocalResource(Resource):
             self.logger.error(msg)
 
     def is_binary(self):
-        if self.origpath.endswith(".binary") or \
-                self.origpath.endswith(".external"):
+        if self.origpath.endswith(EXT_BINARY_INTERNAL) or \
+                self.origpath.endswith(EXT_BINARY_EXTERNAL):
             return True
         else:
             return False
@@ -396,9 +410,9 @@ def main():
 
     # Step through the tree and verify resources
     for filepath in tree:
-        counter += 1
         # iterator can return None, in which case skip
         if filepath is not None:
+            counter += 1
             if filepath.startswith(config.repo):
                 original = FedoraResource(filepath, config, logger)
             elif filepath.startswith(config.dir):
@@ -419,7 +433,7 @@ def main():
                 destination = FedoraResource(original.destpath, config, logger)
 
             if original.type == "binary":
-                if destination.origpath.endswith("external"):
+                if destination.origpath.endswith(EXT_BINARY_EXTERNAL):
                     verified = False
                     verification = "external resource"
                 if original.sha1 == destination.sha1:
