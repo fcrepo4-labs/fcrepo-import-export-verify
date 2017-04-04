@@ -37,7 +37,7 @@ Information about each resource being looked at will then be sent to standard ou
 The default log level for the log file is `INFO` and the default log file is `./verify_output.txt`
 
 A CSV file can be created.  It will contain information about each resource and how it compared
-to it's counterpart in the other system.
+to its counterpart in the other system.
 
 ```
 usage: verify.py [-h] [-u USER] [-c CSV] [-l LOG] [--loglevel LOGLEVEL] [-v]
