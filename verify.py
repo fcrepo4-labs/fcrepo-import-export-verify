@@ -9,7 +9,10 @@ from datetime import datetime
 from hashlib import sha1
 import logging
 from os.path import basename, isfile
-from os import scandir
+try:
+    from os import scandir
+except ImportError:
+    from scandir import scandir
 from rdflib import Graph, URIRef
 from rdflib.compare import isomorphic
 from re import search
