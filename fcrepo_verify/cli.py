@@ -1,10 +1,13 @@
 import click
 from csv import DictWriter
 import logging
+import sys
 from datetime import datetime
 from rdflib.compare import isomorphic
-from fcrepo_verify.verify import Config, FcrepoWalker, LocalWalker, \
-    FedoraResource, LocalResource, sys, EXT_BINARY_EXTERNAL
+from fcrepo_verify.model import Config
+from fcrepo_verify.constants import EXT_BINARY_EXTERNAL
+from fcrepo_verify.iterators import FcrepoWalker, LocalWalker
+from fcrepo_verify.resources import FedoraResource, LocalResource
 
 
 class CredentialsParamType(click.ParamType):

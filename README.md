@@ -54,7 +54,7 @@ positional arguments:
   configfile            Path to an import/export config file.
 
 optional arguments:
-  -h, --help            show this help message and exit
+  --help                show this help message and exit
   -u USER, --user USER  Repository credentials in the form username:password.
   -c CSV, --csv CSV     Path to CSV file (to store summary data).
   -l LOG, --log LOG     Path to log file (to store details of verification
