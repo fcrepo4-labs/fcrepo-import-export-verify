@@ -430,34 +430,42 @@ def main():
                         original.origpath.endswith("/fcr:metadata"):
                     continue
 
-            if filepath.startswith(config.repo):
-                destination = LocalResource(original.destpath, config, logger)
-            elif filepath.startswith(config.dir):
-                destination = FedoraResource(original.destpath, config, logger)
-
-            if original.type == "binary":
-                if destination.origpath.endswith(EXT_BINARY_EXTERNAL):
-                    verified = False
-                    verification = "external resource"
-                if original.sha1 == destination.sha1:
-                    verified = True
-                    verification = original.sha1
-                else:
-                    verified = False
-                    verification = "{0} != {1}".format(
-                        original.sha1, destination.sha1
+            try:
+                if filepath.startswith(config.repo):
+                    destination = LocalResource(
+                        original.destpath, config, logger
                         )
-
-            elif original.type == "rdf":
-                if isomorphic(original.graph, destination.graph):
-                    verified = True
-                    verification = "{0} triples".format(len(original.graph))
-                else:
-                    verified = False
-                    verification = ("{0}+{1} triples - mismatch".format(
-                                        len(original.graph),
-                                        len(destination.graph)
-                                        ))
+                elif filepath.startswith(config.dir):
+                    destination = FedoraResource(
+                        original.destpath, config, logger
+                        )
+                if original.type == "binary":
+                    if destination.origpath.endswith(EXT_BINARY_EXTERNAL):
+                        verified = False
+                        verification = "external resource"
+                    if original.sha1 == destination.sha1:
+                        verified = True
+                        verification = original.sha1
+                    else:
+                        verified = False
+                        verification = "{0} != {1}".format(
+                            original.sha1, destination.sha1
+                            )
+                elif original.type == "rdf":
+                    if isomorphic(original.graph, destination.graph):
+                        verified = True
+                        verification = "{0} triples".format(
+                            len(original.graph)
+                            )
+                    else:
+                        verified = False
+                        verification = ("{0}+{1} triples - mismatch".format(
+                                            len(original.graph),
+                                            len(destination.graph)
+                                            ))
+            except FileNotFoundError:
+                verified = False
+                verification = "destination file not found"
 
             # always tell user if something doesn't match
             if not verified:
