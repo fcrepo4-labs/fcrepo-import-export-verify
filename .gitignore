@@ -87,3 +87,10 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# PyCharm project settings
+.idea/
+
+# verify output
+verify_output.txt
+verify_summary.txt

@@ -12,7 +12,7 @@ your local system where you wish to install it and do:
 ```
 $ git clone http://github.com/fcrepo4-labs/fcrepo-import-export-verify
 $ cd fcrepo-import-export-verify
-$ pip3 install -r requirements.txt
+$ pip3 install -r requirements.txt .
 ```
 Note: 'pip3' is the required command for the installation of dependencies in a local
 Python3 environment (the recommended interpreter); to install dependencies for use
@@ -29,6 +29,10 @@ This same configuration file is used by the verification tool to set up the veri
 process, and is the only required argument. Optional additional arguments for the tool are
 described below.
 
+###
+Running the tests
+
+```pytest tests```
 ### Logging
 Information about errors or discrepancies found will be output to the log file and to the
 screen.  To have the tool output information about each resource being examined include the `-v` flag.
@@ -40,7 +44,7 @@ A CSV file can be created.  It will contain information about each resource and 
 to its counterpart in the other system.
 
 ```
-usage: verify.py [-h] [-u USER] [-c CSV] [-l LOG] [--loglevel LOGLEVEL] [-v]
+usage: fcrepo-verify [-h | --help] [-u USER] [-c CSV] [-l LOG] [--loglevel LOGLEVEL] [-v]
                  configfile
 
 Compare two sets of Fedora resources (in live Fedora server or serialized to
