@@ -63,3 +63,6 @@ optional arguments:
                         ERROR)
   -v, --verbose         Show detailed info for each resource checked
 ```
+
+## Unicode Errors
+The import/export tool escapes Unicode characters when serializing RDF to disk. The verification tool has been observed to generate spurious verification errors when comparing Unicode characters in the repository to the equivalent Unicode escape sequences in RDF on disk. This issue applies to Fedora 4.6.0, and possibly other releases prior to 4.7.2.
