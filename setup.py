@@ -15,7 +15,7 @@ dependencies = ['click',
 
 setup(
     name='fcrepo-verify',
-    version='0.1.0',
+    version='0.2.0-SNAPSHOT',
     url='https://github.com/dbernstein/fcrepo-import-export-verify',
     license='Apache',
     author='Josh Westgard, Bethany Seeger, Youn Noh, Daniel Bernstein',

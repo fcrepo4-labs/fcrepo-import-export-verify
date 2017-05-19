@@ -17,10 +17,13 @@ except ImportError:
 class Config():
     """Object representing the options from import/export config and
        command-line arguments."""
-    def __init__(self, configfile, auth, logger):
-        logger.info("\nLoading configuration options from config file:")
-        logger.info("  '{0}'".format(configfile))
+    def __init__(self, configfile, auth, loggers, csv, verbose):
+        console = loggers.console
+        console.info("\nLoading configuration options from config file:")
+        console.info("  '{0}'".format(configfile))
         self.auth = auth
+        self.csv = csv
+        self.verbose = verbose
 
         with open(configfile, "r") as f:
             yaml_data = f.read()
@@ -52,9 +55,7 @@ class Config():
             if self.lang in EXT_MAP:
                 self.ext = EXT_MAP[self.lang]
             else:
-                logger.error(
-                    "Unrecognized RDF serialization specified in config file!")
-                print(
+                loggers.console.error(
                     "Unrecognized RDF serialization specified in config file!")
                 sys.exit(1)
 
