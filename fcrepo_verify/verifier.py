@@ -40,8 +40,9 @@ class FedoraImportExportVerifier:
         elif config.mode == "import":
             tree = LocalWalker(config, logger)
 
-        console.info("Running verification on Fedora 4 {0}"
-                     .format(config.mode))
+        console.info(
+            "Running verification on Fedora 4 {0}".format(config.mode)
+            )
 
         success_count = 0
         failure_count = 0
@@ -51,8 +52,9 @@ class FedoraImportExportVerifier:
 
         def log_summary(logger):
             logger.info(
-                "Verified {} resources:  successes = {},  failures={}"
-                .format(total_count(), success_count, failure_count))
+                "Verified {} resources: successes = {}, failures = {}".format(
+                    total_count(), success_count, failure_count)
+                    )
 
         def count_logger():
             while(True):
@@ -74,7 +76,8 @@ class FedoraImportExportVerifier:
                     original = LocalResource(filepath, config, logger)
                 else:
                     logger.warn(
-                        "Resource not in path specified in config file.")
+                        "Resource not in path specified in config file."
+                        )
                     sys.exit(1)
 
                 # skip binaries and fcr:metadata if no binaries exported
@@ -117,13 +120,15 @@ class FedoraImportExportVerifier:
                                             len(destination.graph)
                                             ))
 
-                logger.info("RESOURCE {0}: {1} {2}".format(
-                      total_count(), original.location, original.type
-                      ))
+                logger.info(
+                    "RESOURCE {0}: {1} {2}".format(
+                        total_count(), original.location, original.type)
+                        )
 
                 if not verified:
-                    logger.warn("Resource Mismatch \"{}\"".format(
-                        original.relpath))
+                    logger.warn(
+                        "Resource Mismatch \"{}\"".format(original.relpath)
+                        )
                     failure_count += 1
                 else:
                     success_count += 1
@@ -133,8 +138,9 @@ class FedoraImportExportVerifier:
                     logger.info("  orig => {}".format(original.origpath))
                     logger.info("  dest => {}".format(original.destpath))
                     logger.info(
-                            "  Verifying original to copy... {0} -- {1}"
-                            .format(verified, verification))
+                        "  Verifying original to copy... {0} -- {1}".format(
+                            verified, verification)
+                            )
 
                 # write csv if exists
                 if csv:
