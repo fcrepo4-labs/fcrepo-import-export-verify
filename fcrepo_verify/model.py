@@ -9,18 +9,14 @@ try:
 except ImportError:
     from yaml import Loader
 
-# ============================================================================
-# CONFIGURATION CLASS
-# ============================================================================
-
 
 class Config():
-    """Object representing the options from import/export config and
-       command-line arguments."""
+    """Object representing the options from configuration file and args."""
     def __init__(self, configfile, auth, loggers, csv, verbose):
         console = loggers.console
-        console.info("\nLoading configuration options from config file:")
-        console.info("  '{0}'".format(configfile))
+        console.info(
+            "Loading configuration options from {0}".format(configfile)
+            )
         self.auth = auth
         self.csv = csv
         self.verbose = verbose
@@ -56,7 +52,8 @@ class Config():
                 self.ext = EXT_MAP[self.lang]
             else:
                 loggers.console.error(
-                    "Unrecognized RDF serialization specified in config file!")
+                    "Unrecognized RDF serialization specified in config file!"
+                    )
                 sys.exit(1)
 
         # split the repository URI into base and path components

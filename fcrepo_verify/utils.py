@@ -10,10 +10,6 @@ try:
 except ImportError:
     from scandir import scandir
 
-# ============================================================================
-# HELPER FUNCTIONS
-# ============================================================================
-
 
 def get_child_nodes(node, auth, logger):
     """Get the children based on LDP containment."""

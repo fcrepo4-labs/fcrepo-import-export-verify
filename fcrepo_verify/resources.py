@@ -8,22 +8,13 @@ from urllib.parse import urlparse, quote
 from fcrepo_verify.constants import EXT_BINARY_INTERNAL, \
     EXT_BINARY_EXTERNAL, LDP_NON_RDF_SOURCE
 
-# ============================================================================
-# MAIN RESOURCE CLASS
-# ============================================================================
-
 
 class Resource(object):
-    """Common aspects of any resource, either local or in fcrepo."""
+    """Common properties of any resource."""
     def __init__(self, inputpath, config, logger):
         self.config = config
         self.origpath = inputpath
         self.logger = logger
-
-
-# ============================================================================
-# FEDORA RESOURCE CLASS
-# ============================================================================
 
 
 class FedoraResource(Resource):
@@ -82,11 +73,6 @@ class FedoraResource(Resource):
                 )
             self.sha1 = m.group(1) if m else ""
             return True
-
-
-# ============================================================================
-# LOCAL RESOURCE CLASS
-# ============================================================================
 
 
 class LocalResource(Resource):

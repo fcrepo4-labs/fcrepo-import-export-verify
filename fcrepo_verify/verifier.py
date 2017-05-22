@@ -10,14 +10,13 @@ from fcrepo_verify.resources import FedoraResource, LocalResource
 
 
 class FedoraImportExportVerifier:
-    """contains logic for performing a verification"""
-
+    """Contains logic for performing a verification."""
     def __init__(self, config, loggers):
         self.config = config
         self.loggers = loggers
 
     def execute(self):
-        """executes the verification process"""
+        """Executes the verification process."""
         config = self.config
         csv = self.config.csv
 

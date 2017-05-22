@@ -1,5 +1,5 @@
 """
-Verifies the results of import and export operatdora repositories.
+Verifies the results of import and export operations in Fedora repositories.
 """
 from setuptools import find_packages, setup
 
@@ -21,8 +21,8 @@ setup(
     author='Josh Westgard, Bethany Seeger, Youn Noh, Daniel Bernstein',
     author_email='westgard@umd.edu, bseeger@amherst.edu, youn.noh@yale.edu, '
                  'dbernstein@duraspace.org',
-    description='Verifies the results of import and export operations to '
-                'and from Fedora repositories.',
+    description='Verifies the results of import and export operations in '
+                'Fedora repositories.',
     long_description=__doc__,
     packages=find_packages(exclude=['tests']),
     include_package_data=True,

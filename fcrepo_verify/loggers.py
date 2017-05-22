@@ -9,10 +9,13 @@ class Loggers:
 
 
 def createLoggers(level, logfilename):
-    '''Creates and configures a Loggers object which contains three loggers:
+    """Creates and configures Loggers object containing three loggers.
+
+    The Loggers object contains these loggers:
         console - logs to both the console and the log file
         console_only - logs only to the console
-        file_only - only logs to the file'''
+        file_only - only logs to the file
+    """
 
     # create console logger
     console = logging.getLogger("output")

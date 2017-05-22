@@ -6,9 +6,11 @@ from fcrepo_verify.verifier import FedoraImportExportVerifier
 
 
 class CredentialsParamType(click.ParamType):
-    '''A custom credentials parameter type that produces a
-    tuple(username, password) from a username:password formatted string.'''
+    """A custom credentials parameter type.
 
+    This class produces a tuple(username, password) from a string in the
+    form username:password.
+    """
     name = 'credentials'
 
     def convert(self, value, param, ctx):
@@ -21,11 +23,6 @@ class CredentialsParamType(click.ParamType):
         except ValueError:
             self.fail('Credentials must be given in the form user:password.',
                       param, ctx)
-
-
-# ============================================================================
-# Main function
-# ============================================================================
 
 
 @click.command()
@@ -45,10 +42,13 @@ class CredentialsParamType(click.ParamType):
               is_flag=True, default=False)
 @click.argument('configfile', type=click.Path(exists=True), required=True)
 def main(configfile, csv, user, log, loglevel, verbose):
-    """This utility compares two sets of Fedora resources
-       (in live Fedora server or serialized to disk) and verify their sameness
-       using CONFIGFILE (i.e. path to an import/export config file)."""
+    """Verify that the resources in Fedora and on disk are the same.
 
+    Using a CONFIGFILE (i.e. path to an fcrepo-import-export configuration
+    file) this utility compares two sets of Fedora resources, one in a live
+    server and the other serialized to disk, and verifies that the two sets
+    are the same.
+    """
     level = getattr(logging, loglevel.upper(), None)
     loggers = createLoggers(level, log)
     # Create configuration object and setup import/export iterators
