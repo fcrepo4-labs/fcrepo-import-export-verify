@@ -7,6 +7,7 @@ from rdflib.compare import isomorphic
 from fcrepo_verify.constants import EXT_BINARY_EXTERNAL
 from fcrepo_verify.iterators import FcrepoWalker, LocalWalker
 from fcrepo_verify.resources import FedoraResource, LocalResource
+from fcrepo_verify.model import Repository
 
 
 class FedoraImportExportVerifier:
@@ -24,6 +25,17 @@ class FedoraImportExportVerifier:
         logger = loggers.file_only
         console = loggers.console
         console_only = loggers.console_only
+
+        # Check the repository connection
+        repo = Repository(config, loggers)
+        console.info("Testing connection to {0}...".format(repo.base))
+        if repo.is_reachable():
+            console.info("Connection successful.")
+        else:
+            console.error(
+                "Connection to {0} failed. Exiting.".format(repo.base)
+                )
+            sys.exit(1)
 
         # Set up csv file, if specified
         if csv:

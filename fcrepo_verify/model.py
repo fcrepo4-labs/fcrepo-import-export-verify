@@ -1,5 +1,6 @@
 __author__ = 'danny'
 
+import requests
 import sys
 from urllib.parse import urlparse
 from fcrepo_verify.constants import EXT_MAP
@@ -59,3 +60,19 @@ class Config():
         # split the repository URI into base and path components
         self.repopath = urlparse(self.repo).path
         self.repobase = self.repo[:-len(self.repopath)]
+
+
+class Repository():
+    """Object representing a live Fedora repository."""
+    def __init__(self, config, loggers):
+        self.auth = config.auth
+        self.path = config.repopath
+        self.base = config.repobase
+        self.root = self.base + self.path
+
+    def is_reachable(self):
+        try:
+            response = requests.head(self.root, auth=self.auth)
+            return response.status_code == 200
+        except requests.ConnectionError:
+            return False
