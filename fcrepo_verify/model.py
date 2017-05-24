@@ -1,9 +1,7 @@
-__author__ = 'danny'
-
 import requests
 import sys
 from urllib.parse import urlparse
-from fcrepo_verify.constants import EXT_MAP
+from .constants import EXT_MAP
 from yaml import load
 try:
     from yaml import CLoader as Loader
@@ -31,7 +29,7 @@ class Config():
         self.bin = False
         # interpret the options in the stored config file
         for key, value in opts.items():
-            print("key (" + str(key) + ") and (" + str(value) + ")")
+            console.info("key (" + str(key) + ") and (" + str(value) + ")")
             if key == "mode":
                 self.mode = value
             elif key == "resource":

@@ -4,10 +4,10 @@ import time
 import threading
 from rdflib.compare import isomorphic
 
-from fcrepo_verify.constants import EXT_BINARY_EXTERNAL
-from fcrepo_verify.iterators import FcrepoWalker, LocalWalker
-from fcrepo_verify.resources import FedoraResource, LocalResource
-from fcrepo_verify.model import Repository
+from .constants import EXT_BINARY_EXTERNAL
+from .iterators import FcrepoWalker, LocalWalker
+from .resources import FedoraResource, LocalResource
+from .model import Repository
 
 
 class FedoraImportExportVerifier:

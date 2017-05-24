@@ -1,7 +1,5 @@
-__author__ = 'danny'
-
 from os.path import basename, isfile
-from fcrepo_verify.utils import get_directory_contents, get_child_nodes
+from .utils import get_directory_contents, get_child_nodes
 
 
 class Walker:

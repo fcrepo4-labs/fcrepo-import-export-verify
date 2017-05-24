@@ -5,8 +5,8 @@ from re import search
 import requests
 from urllib.parse import urlparse, quote
 
-from fcrepo_verify.constants import EXT_BINARY_INTERNAL, \
-    EXT_BINARY_EXTERNAL, LDP_NON_RDF_SOURCE
+from .constants import EXT_BINARY_INTERNAL, EXT_BINARY_EXTERNAL, \
+    LDP_NON_RDF_SOURCE
 
 
 class Resource(object):
@@ -105,10 +105,9 @@ class LocalResource(Resource):
                 location=self.origpath, format=config.lang
                 )
         else:
-            msg = "ERROR: RDF resource lacks expected extension!".format(
+            msg = "RDF resource lacks expected extension!".format(
                     self.origpath)
 
-            print(msg)
             self.logger.error(msg)
 
     def is_binary(self):

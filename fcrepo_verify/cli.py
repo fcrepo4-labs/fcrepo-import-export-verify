@@ -56,3 +56,7 @@ def main(configfile, csv, user, log, loglevel, verbose):
     # Create and execute verifier logic
     verifier = FedoraImportExportVerifier(config, loggers)
     verifier.execute()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,6 +1,4 @@
-__author__ = 'danny'
-
-from fcrepo_verify.constants import LDP_CONTAINS, LDP_NON_RDF_SOURCE
+from .constants import LDP_CONTAINS, LDP_NON_RDF_SOURCE
 from rdflib import Graph, URIRef
 import requests
 import sys
