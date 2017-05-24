@@ -3,6 +3,7 @@ from hashlib import sha1
 from rdflib import Graph
 from re import search
 import requests
+import sys
 from urllib.parse import urlparse, quote
 
 from .constants import EXT_BINARY_INTERNAL, EXT_BINARY_EXTERNAL, \
@@ -23,10 +24,31 @@ class FedoraResource(Resource):
         Resource.__init__(self, inputpath, config, logger)
         self.location = "fedora"
         self.relpath = urlparse(self.origpath).path.rstrip("/")
-        self.fetch_headers()
+        head_response = self.fetch_headers()
+
+        # handle various HTTP responses
+        if head_response.status_code == 200:
+            self.is_reachable = True
+            self.headers = head_response.headers
+            self.ldp_type = head_response.links["type"]["url"]
+            self.external = False
+        elif head_response.status_code == 307:
+            self.is_reachable = True
+            self.headers = head_response.headers
+            self.ldp_type = head_response.links["type"]["url"]
+            self.external = True
+        elif head_response.status_code in [401, 403, 404]:
+            self.is_reachable = False
+            self.type = "unknown"
+        else:
+            self.console.error("Unexpected response from Fedora")
+            sys.exit(1)
+
+        # analyze resources that can be reached
         if self.is_binary():
             self.type = "binary"
             self.metadata = self.origpath + "/fcr:metadata"
+            self.sha1 = self.lookup_sha1()
             if self.external:
                 self.destpath = quote(
                     (self.config.dir + self.relpath + EXT_BINARY_EXTERNAL)
@@ -35,7 +57,6 @@ class FedoraResource(Resource):
                 self.destpath = quote(
                     (self.config.dir + self.relpath + EXT_BINARY_INTERNAL)
                     )
-            self.lookup_sha1()
         else:
             self.type = "rdf"
             self.destpath = quote(
@@ -48,31 +69,20 @@ class FedoraResource(Resource):
                     )
 
     def fetch_headers(self):
-        response = requests.head(url=self.origpath, auth=self.config.auth)
-        if response.status_code in [200, 307]:
-            self.headers = response.headers
-            self.ldp_type = response.links["type"]["url"]
-            if response.status_code == 200:
-                self.external = False
-            elif response.status_code == 307:
-                self.external = True
-            return True
-        else:
-            # handle other response codes appropriately here
-            return False
+        return requests.head(url=self.origpath, auth=self.config.auth)
 
     def is_binary(self):
-        if self.headers:
-            return self.ldp_type == LDP_NON_RDF_SOURCE
+        return self.ldp_type == LDP_NON_RDF_SOURCE
 
     def lookup_sha1(self):
+        result = ""
         response = requests.get(self.metadata, auth=self.config.auth)
         if response.status_code == 200:
             m = search(
                 r"premis:hasMessageDigest[\s]+<urn:sha1:(.+?)>", response.text
                 )
-            self.sha1 = m.group(1) if m else ""
-            return True
+            result = m.group(1) if m else ""
+        return result
 
 
 class LocalResource(Resource):

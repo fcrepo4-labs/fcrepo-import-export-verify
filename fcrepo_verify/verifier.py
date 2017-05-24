@@ -81,9 +81,11 @@ class FedoraImportExportVerifier:
         for filepath in tree:
             # iterator can return None, in which case skip
             if filepath is not None:
-
                 if filepath.startswith(config.repo):
                     original = FedoraResource(filepath, config, logger)
+                    if not original.is_reachable:
+                        verified = False
+                        verification = "original not reachable"
                 elif filepath.startswith(config.dir):
                     original = LocalResource(filepath, config, logger)
                 else:
