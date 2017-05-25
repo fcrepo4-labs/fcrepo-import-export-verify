@@ -1,4 +1,6 @@
 import logging
+import os
+import datetime
 
 
 class Loggers:
@@ -8,7 +10,7 @@ class Loggers:
         self.file_only = file_only
 
 
-def createLoggers(level, logfilename):
+def createLoggers(level, log_dir):
     """Creates and configures Loggers object containing three loggers.
 
     The Loggers object contains these loggers:
@@ -17,6 +19,10 @@ def createLoggers(level, logfilename):
         file_only - only logs to the file
     """
 
+    os.makedirs(log_dir, exist_ok=True)
+    datestr = datetime.datetime.today().strftime('%Y%m%d-%H%M')
+    logfilename = "{0}/verify-{1}.log".format(log_dir, datestr)
+
     # create console logger
     console = logging.getLogger("output")
     console.setLevel(level)
@@ -24,10 +30,6 @@ def createLoggers(level, logfilename):
     # create console handler and set level to debug
     console_handler = logging.StreamHandler()
     file_handler = logging.FileHandler(filename=logfilename, mode="w")
-
-    # set level
-    # console_handler.setLevel(logging.INFO)
-    # file_handler.setLevel(logging.DEBUG)
 
     # create formatters
     console_formatter = logging.Formatter("%(asctime)s %(levelname)-8s "

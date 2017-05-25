@@ -92,5 +92,5 @@ ENV/
 .idea/
 
 # verify output
-verify_output.txt
-verify_summary.txt
+logs/
+output/

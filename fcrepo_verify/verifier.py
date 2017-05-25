@@ -1,4 +1,6 @@
 from csv import DictWriter
+import os
+import datetime
 import sys
 import time
 import threading
@@ -30,7 +32,7 @@ class FedoraImportExportVerifier:
     def execute(self):
         """Executes the verification process."""
         config = self.config
-        csv = self.config.csv
+        output_dir = self.config.output_dir
 
         loggers = self.loggers
         logger = loggers.file_only
@@ -49,13 +51,15 @@ class FedoraImportExportVerifier:
             sys.exit(1)
 
         # Set up csv file, if specified
-        if csv:
-            csvfile = open(csv, "w")
-            fieldnames = ["number", "type", "original", "destination",
-                          "verified",
-                          "verification"]
-            writer = DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
+        os.makedirs(output_dir, exist_ok=True)
+        datestr = datetime.datetime.today().strftime('%Y%m%d-%H%M')
+        csvfilename = "{0}/report-{1}.csv".format(output_dir, datestr)
+        csvfile = open(csvfilename, "w")
+        fieldnames = ["number", "type", "original", "destination",
+                      "verified",
+                      "verification"]
+        writer = DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
 
         console.info("Starting verification...")
         if config.mode == "export":
@@ -69,6 +73,8 @@ class FedoraImportExportVerifier:
 
         if config.bag:
             self.verify_bag()
+
+        console.info("Commencing resource verification...")
 
         success_count = 0
         failure_count = 0
@@ -171,17 +177,15 @@ class FedoraImportExportVerifier:
                             )
 
                 # write csv if exists
-                if csv:
-                    row = {"number":       str(total_count()),
-                           "type":         original.type,
-                           "original":     original.origpath,
-                           "destination":  original.destpath,
-                           "verified":     str(verified),
-                           "verification": verification}
-                    writer.writerow(row)
+                row = {"number":       str(total_count()),
+                       "type":         original.type,
+                       "original":     original.origpath,
+                       "destination":  original.destpath,
+                       "verified":     str(verified),
+                       "verification": verification}
+                writer.writerow(row)
 
         log_summary(console)
         console.info("Verification complete")
 
-        if csv:
-            csvfile.close()
+        csvfile.close()

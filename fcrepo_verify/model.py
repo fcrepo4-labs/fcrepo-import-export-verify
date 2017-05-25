@@ -11,13 +11,13 @@ except ImportError:
 
 class Config():
     """Object representing the options from configuration file and args."""
-    def __init__(self, configfile, auth, loggers, csv, verbose):
+    def __init__(self, configfile, auth, loggers, output_dir, verbose):
         console = loggers.console
         console.info(
             "Loading configuration options from {0}".format(configfile)
             )
         self.auth = auth
-        self.csv = csv
+        self.output_dir = output_dir
         self.verbose = verbose
         self.bag = False
 
