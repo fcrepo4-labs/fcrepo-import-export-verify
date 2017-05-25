@@ -1,5 +1,6 @@
 from os.path import basename, isfile
 from .utils import get_directory_contents, get_child_nodes
+from .utils import get_data_dir
 
 
 class Walker:
@@ -32,7 +33,9 @@ class FcrepoWalker(Walker):
 class LocalWalker(Walker):
     """Walk serialized resources on disk."""
     def __init__(self, config, logger):
-        Walker.__init__(self, config.dir, logger)
+        Walker.__init__(self,
+                        (get_data_dir(config)),
+                        logger)
 
     def __next__(self):
         if not self.to_check:

@@ -3,6 +3,7 @@ import sys
 import time
 import threading
 from rdflib.compare import isomorphic
+from bagit import Bag
 
 from .constants import EXT_BINARY_EXTERNAL
 from .iterators import FcrepoWalker, LocalWalker
@@ -15,6 +16,16 @@ class FedoraImportExportVerifier:
     def __init__(self, config, loggers):
         self.config = config
         self.loggers = loggers
+
+    def verify_bag(self):
+        """Verifies the structure of the bag"""
+        console = self.loggers.console
+        console.info("Verifying bag...")
+        bag = Bag(self.config.dir)
+        if bag.is_valid():
+            console.info("bag is valid :)")
+        else:
+            console.info("bag is invalid :(")
 
     def execute(self):
         """Executes the verification process."""
@@ -55,6 +66,9 @@ class FedoraImportExportVerifier:
         console.info(
             "Running verification on Fedora 4 {0}".format(config.mode)
             )
+
+        if config.bag:
+            self.verify_bag()
 
         success_count = 0
         failure_count = 0

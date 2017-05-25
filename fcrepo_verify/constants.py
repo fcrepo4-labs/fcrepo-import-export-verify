@@ -14,3 +14,4 @@ LDP_CONTAINS = "http://www.w3.org/ns/ldp#contains"
 
 EXT_BINARY_INTERNAL = ".binary"
 EXT_BINARY_EXTERNAL = ".external"
+BAG_DATA_DIR = "/data"

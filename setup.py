@@ -11,7 +11,8 @@ dependencies = ['click',
                 'requests',
                 'pyyaml',
                 'flake8',
-                'scandir']
+                'scandir',
+                'bagit']
 
 setup(
     name='fcrepo-verify',

@@ -19,6 +19,7 @@ class Config():
         self.auth = auth
         self.csv = csv
         self.verbose = verbose
+        self.bag = False
 
         with open(configfile, "r") as f:
             yaml_data = f.read()
@@ -40,6 +41,8 @@ class Config():
                 self.bin = value
             elif key == "rdfLang":
                 self.lang = value
+            elif key == "bag-profile":
+                self.bag = True
 
         # if lang not specified in config, set the ext & lang to turtle
         if not hasattr(self, "lang"):

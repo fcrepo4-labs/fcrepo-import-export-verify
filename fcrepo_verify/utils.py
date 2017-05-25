@@ -32,3 +32,9 @@ def get_child_nodes(node, auth, logger):
 def get_directory_contents(localpath):
     """Get the children based on the directory hierarchy."""
     return [p.path for p in scandir(localpath)]
+
+
+def get_data_dir(config):
+    """Returns the root directory containing serialized fedora objects
+    based on the configuration."""
+    return config.dir if not config.bag else config.dir + "/data"

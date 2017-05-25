@@ -5,4 +5,5 @@ rdflib_jsonld==0.4.0
 requests==2.11.1
 pyyaml==3.10
 flake8==3.3.0
+bagit==1.5.4
 scandir==1.5 ; python_version < '3.5'
