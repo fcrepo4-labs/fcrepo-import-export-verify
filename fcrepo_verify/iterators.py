@@ -18,13 +18,16 @@ class FcrepoWalker(Walker):
     def __init__(self, config, logger):
         Walker.__init__(self, config.repo, logger)
         self.auth = config.auth
+        self.inbound = config.inbound
+        self.predicates = config.predicates
 
     def __next__(self):
         if not self.to_check:
             raise StopIteration()
         else:
             current = self.to_check.pop()
-            children = get_child_nodes(current, self.auth, self.logger)
+            children = get_child_nodes(current, self.predicates,
+                                       self.auth, self.logger)
             if children:
                 self.to_check.extend(children)
             return current

@@ -29,14 +29,31 @@ class Config():
         # initialize binaries option (will be overidden below if in config)
         self.bin = False
         # interpret the options in the stored config file
+        console.info("Loaded the following configuration options:")
+        pad = max([len(k) for k in opts.keys()])
         for key, value in opts.items():
-            console.info("key (" + str(key) + ") and (" + str(value) + ")")
+            console.info(
+                "  --> {:{align}{pad}} : {}".format(key, value,
+                                                    pad=pad, align='>')
+                )
             if key == "mode":
                 self.mode = value
+            elif key == "external":
+                self.external = value
+            elif key == "legacyMode":
+                self.legacyMode = value
+            elif key == "predicates":
+                self.predicates = value.split(',')
+            elif key == "overwriteTombstones":
+                self.overwriteTombstones = value
             elif key == "resource":
                 self.repo = value
+            elif key == "inbound":
+                self.inbound = value
             elif key == "dir":
                 self.dir = value
+            elif key == "map":
+                self.map = value.split(',')
             elif key == "binaries":
                 self.bin = value
             elif key == "rdfLang":

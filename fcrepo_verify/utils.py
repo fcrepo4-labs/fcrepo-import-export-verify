@@ -9,20 +9,32 @@ except ImportError:
     from scandir import scandir
 
 
-def get_child_nodes(node, auth, logger):
-    """Get the children based on LDP containment."""
+def get_child_nodes(node, predicates, auth, logger):
+    """Get the children based on specified containment predicates."""
+    # set up containment predicates as specified
+    if 'predicates' is not None:
+        containment_predicates = predicates
+    else:
+        containment_predicates = [LDP_CONTAINS]
+    # check the resource
     head = requests.head(url=node, auth=auth)
     if head.status_code in [200, 307]:
+        # check if resource is binary and if so return metadata node
         if head.links["type"]["url"] == LDP_NON_RDF_SOURCE:
             metadata = [node + "/fcr:metadata"]
             return metadata
         else:
+            # get the node's graph
             response = requests.get(url=node, auth=auth)
             graph = Graph().parse(data=response.text, format="text/turtle")
-            predicate = URIRef(LDP_CONTAINS)
-            children = [str(obj) for obj in graph.objects(
-                            subject=None, predicate=predicate
-                            )]
+            children = []
+            # get all the objects of containment triples
+            for cp in containment_predicates:
+                predicate = URIRef(cp)
+                children.extend(
+                    [str(obj) for obj in graph.objects(subject=None,
+                                                       predicate=predicate)]
+                    )
             return children
     else:
         logger.error("Error communicating with repository.")

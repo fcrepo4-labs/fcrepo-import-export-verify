@@ -106,7 +106,7 @@ class FedoraImportExportVerifier:
                     if not original.is_reachable:
                         verified = False
                         verification = "original not reachable"
-                elif filepath.startswith(config.dir):
+                elif filepath.startswith(config.repobase):
                     original = LocalResource(filepath, config, logger)
                 else:
                     logger.warn(

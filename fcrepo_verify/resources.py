@@ -94,6 +94,7 @@ class LocalResource(Resource):
         self.relpath = self.origpath[len(self.data_dir):]
         urlinfo = urlparse(config.repo)
         config_repo = urlinfo.scheme + "://" + urlinfo.netloc
+        self.type = "unknown"
 
         if self.is_binary():
             self.type = "binary"
@@ -119,7 +120,6 @@ class LocalResource(Resource):
         else:
             msg = "RDF resource lacks expected extension!".format(
                     self.origpath)
-
             self.logger.error(msg)
 
     def is_binary(self):
