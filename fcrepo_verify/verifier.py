@@ -99,65 +99,75 @@ class FedoraImportExportVerifier:
 
         # Step through the tree and verify resources
         for filepath in tree:
+
             # iterator can return None, in which case skip
             if filepath is not None:
-                if filepath.startswith(config.repo):
-                    original = FedoraResource(filepath, config, logger)
-                    if not original.is_reachable:
-                        verified = False
-                        verification = "original not reachable"
-                elif filepath.startswith(config.repobase):
-                    original = LocalResource(filepath, config, logger)
-                else:
-                    logger.warn(
-                        "Resource not in path specified in config file."
-                        )
-                    sys.exit(1)
 
-                # skip binaries and fcr:metadata if no binaries exported
-                if not config.bin:
-                    if original.type == "binary" or \
-                            original.origpath.endswith("/fcr:metadata"):
-                        continue
+                try:
 
-                if filepath.startswith(config.repo):
-                    destination = LocalResource(original.destpath,
-                                                config,
-                                                loggers.file_only)
-                elif filepath.startswith(config.dir):
-                    destination = FedoraResource(original.destpath,
-                                                 config,
-                                                 loggers.file_only)
-
-                if original.type == "binary":
-                    if destination.origpath.endswith(EXT_BINARY_EXTERNAL):
-                        verified = False
-                        verification = "external resource"
-                    if original.sha1 == destination.sha1:
-                        verified = True
-                        verification = original.sha1
+                    if filepath.startswith(config.repo):
+                        original = FedoraResource(filepath, config, logger)
+                        if not original.is_reachable:
+                            verified = False
+                            verification = "original not reachable"
+                    elif filepath.startswith(config.repobase):
+                        original = LocalResource(filepath, config, logger)
                     else:
-                        verified = False
-                        verification = "{0} != {1}".format(
-                            original.sha1, destination.sha1
+                        logger.warn(
+                            "Resource not in path specified in config file."
+                            )
+                        sys.exit(1)
+
+                    # skip binaries and fcr:metadata if no binaries exported
+                    if not config.bin:
+                        if original.type == "binary" or \
+                                original.origpath.endswith("/fcr:metadata"):
+                            continue
+
+                    if filepath.startswith(config.repo):
+                        destination = LocalResource(original.destpath,
+                                                    config,
+                                                    loggers.file_only)
+                    elif filepath.startswith(config.dir):
+                        destination = FedoraResource(original.destpath,
+                                                     config,
+                                                     loggers.file_only)
+
+                    if original.type == "binary":
+                        if destination.origpath.endswith(EXT_BINARY_EXTERNAL):
+                            verified = False
+                            verification = "external resource"
+                        if original.sha1 == destination.sha1:
+                            verified = True
+                            verification = original.sha1
+                        else:
+                            verified = False
+                            verification = "{0} != {1}".format(
+                                original.sha1, destination.sha1
+                                )
+
+                    elif original.type == "rdf":
+                        if isomorphic(original.graph, destination.graph):
+                            verified = True
+                            verification = \
+                                "{0} triples".format(len(original.graph))
+                        else:
+                            verified = False
+                            verification = ("{0}+{1} triples - mismatch"
+                                            .format(
+                                                len(original.graph),
+                                                len(destination.graph)
+                                                ))
+
+                    logger.info(
+                        "RESOURCE {0}: {1} {2}".format(
+                            total_count(), original.location, original.type)
                             )
 
-                elif original.type == "rdf":
-                    if isomorphic(original.graph, destination.graph):
-                        verified = True
-                        verification = \
-                            "{0} triples".format(len(original.graph))
-                    else:
-                        verified = False
-                        verification = ("{0}+{1} triples - mismatch".format(
-                                            len(original.graph),
-                                            len(destination.graph)
-                                            ))
-
-                logger.info(
-                    "RESOURCE {0}: {1} {2}".format(
-                        total_count(), original.location, original.type)
-                        )
+                except Exception as ex:
+                    verified = False
+                    verification = ("Object could not be verified: {"
+                                    "0}".format(ex))
 
                 if not verified:
                     logger.warn(
@@ -171,8 +181,14 @@ class FedoraImportExportVerifier:
                     logger.info("  rel  => {}".format(original.relpath))
                     logger.info("  orig => {}".format(original.origpath))
                     logger.info("  dest => {}".format(original.destpath))
-                    logger.info(
-                        "  Verifying original to copy... {0} -- {1}".format(
+
+                    logger_method = logger.info
+
+                    if not verified:
+                        logger_method = logger.warn
+
+                    logger_method(
+                        "  Verified original to copy... {0} -- {1}".format(
                             verified, verification)
                             )
 
