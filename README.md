@@ -33,24 +33,27 @@ This same configuration file is used by the verification tool to set up the
 verification process, and is the only required argument. Optional additional 
 arguments for the tool are described below.
 
-###
-Running the tests
+### Running tests
+```
+$ pytest tests
+```
 
-```pytest tests```
 ### Logging
-Information about errors or discrepancies found will be output to the log file 
-and to the screen.  To have the tool output information about each resource 
-being examined include the `-v` flag. Information about each resource being 
-looked at will then be sent to standard out.
+Information about errors or discrepancies found will be printed to the console
+and logged to a file named with a timestamp. The location of the logs (default 
+is the 'logs' directory) can be specified with the `-l/--logdir` parameter. To 
+have the tool log detailed information about each resource comparison use the 
+`-v/--verbose` flag.
 
-The default log level for the log file is `INFO` and the default log file is 
-`./verify_output.txt`
+The default log level for the log file is `INFO`. the log level can be 
+specified with the `-g/--loglevel` flag.
 
-A CSV file can be created.  It will contain information about each resource and 
-how it compared to its counterpart in the other system, as well as the reason
-why a resource and its counterpart were determined to be the same, or different
-in the case of errors (normally via SHA1 checksum for binaries and by graph
-comparison for RDF resources).
+In addition to the logs, a CSV output file is written to the output directory.  
+The location of this output can be specified with the `-o/--output` parameter. 
+This file contains information about each resource and how it compared to its 
+counterpart in the other location, as well as the reason why a resource and its 
+counterpart were determined to be the same, or different in the case of errors 
+(via SHA1 checksum for binaries and by graph comparison for RDF resources).
 
 ```
 Usage: fcrepo-verify [OPTIONS] CONFIGFILE
@@ -63,10 +66,11 @@ Usage: fcrepo-verify [OPTIONS] CONFIGFILE
   are the same.
 
 Options:
-  -c, --csv TEXT          Path to CSV file (to store summary data).
+  -o, --outputdir TEXT    Path to directory for output files such as csv
+                          reports of the verification process.
   -u, --user CREDENTIALS  Repository credentials in the form of
                           username:password
-  -l, --log TEXT          Path to log file (to store details of verification
+  -l, --logdir TEXT       Path to log file (to store details of verification
                           run).
   -g, --loglevel TEXT     Level of information to output (INFO, WARN, DEBUG,
                           ERROR)
