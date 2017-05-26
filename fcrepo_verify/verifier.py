@@ -105,16 +105,20 @@ class FedoraImportExportVerifier:
 
                 try:
 
-                    if filepath.startswith(config.repo):
+                    # path begins with repository base = fedora resource
+                    if filepath.startswith(config.repobase):
                         original = FedoraResource(filepath, config, logger)
                         if not original.is_reachable:
                             verified = False
                             verification = "original not reachable"
-                    elif filepath.startswith(config.repobase):
+                    # path begins with local root dir = local resource
+                    elif filepath.startswith(config.dir):
                         original = LocalResource(filepath, config, logger)
+                    # any other path indicates an error
                     else:
-                        logger.warn(
-                            "Resource not in path specified in config file."
+                        # TODO: Consider handling this error and continuing
+                        logger.error(
+                            "Resource in unexpected location."
                             )
                         sys.exit(1)
 
@@ -124,7 +128,8 @@ class FedoraImportExportVerifier:
                                 original.origpath.endswith("/fcr:metadata"):
                             continue
 
-                    if filepath.startswith(config.repo):
+                    # create object representing destination resource
+                    if filepath.startswith(config.repobase):
                         destination = LocalResource(original.destpath,
                                                     config,
                                                     loggers.file_only)
@@ -133,6 +138,7 @@ class FedoraImportExportVerifier:
                                                      config,
                                                      loggers.file_only)
 
+                    # analyze the resource type
                     if original.type == "binary":
                         if destination.origpath.endswith(EXT_BINARY_EXTERNAL):
                             verified = False
@@ -145,7 +151,6 @@ class FedoraImportExportVerifier:
                             verification = "{0} != {1}".format(
                                 original.sha1, destination.sha1
                                 )
-
                     elif original.type == "rdf":
                         if isomorphic(original.graph, destination.graph):
                             verified = True
