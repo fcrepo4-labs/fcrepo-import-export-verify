@@ -1,5 +1,7 @@
 import click
 import logging
+
+from fcrepo_verify.version import __version__
 from fcrepo_verify.model import Config
 from fcrepo_verify.loggers import createLoggers
 from fcrepo_verify.verifier import FedoraImportExportVerifier
@@ -42,8 +44,9 @@ class CredentialsParamType(click.ParamType):
 @click.option('--verbose', '-v',
               help='Show detailed info for each resource checked',
               is_flag=True, default=False)
+@click.version_option(__version__)
 @click.argument('configfile', type=click.Path(exists=True), required=True)
-def main(configfile, outputdir, user, logdir, loglevel, verbose):
+def main(configfile, outputdir, user, logdir, loglevel, verbose, version):
     """Verify that the resources in Fedora and on disk are the same.
 
     Using a CONFIGFILE (i.e. path to an fcrepo-import-export configuration
@@ -51,8 +54,11 @@ def main(configfile, outputdir, user, logdir, loglevel, verbose):
     server and the other serialized to disk, and verifies that the two sets
     are the same.
     """
+
     level = getattr(logging, loglevel.upper(), None)
     loggers = createLoggers(level, logdir)
+
+    loggers.console.info("version: {0}\n".format(__version__))
 
     # Create configuration object and setup import/export iterators
     config = Config(configfile, user, loggers, outputdir, verbose)
