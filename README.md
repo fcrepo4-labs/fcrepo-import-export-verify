@@ -19,6 +19,14 @@ $ python3 setup.py install
 ```
 This will download all dependencies and install the program on your PATH.
 
+If you wish to reinstall a different revision (which happens to have the
+same version), we recommend using the following command in the 
+fcrepo-import-export-verify directory after checking out the desired 
+revision:
+```
+$ sudo -H pip3 install -r requirements.txt .
+```
+
 ## Usage
 The simplest scenario is to run the script with a single argument pointing to 
 the location of the import/export configuration file.
