@@ -76,6 +76,7 @@ Options:
                           ERROR)
   -v, --verbose           Show detailed info for each resource checked
   --help                  Show this message and exit.
+  --version               Show the version of the tool
 ```
 
 ## Unicode Errors

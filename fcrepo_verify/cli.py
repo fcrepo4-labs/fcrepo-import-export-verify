@@ -46,7 +46,7 @@ class CredentialsParamType(click.ParamType):
               is_flag=True, default=False)
 @click.version_option(__version__)
 @click.argument('configfile', type=click.Path(exists=True), required=True)
-def main(configfile, outputdir, user, logdir, loglevel, verbose, version):
+def main(configfile, outputdir, user, logdir, loglevel, verbose):
     """Verify that the resources in Fedora and on disk are the same.
 
     Using a CONFIGFILE (i.e. path to an fcrepo-import-export configuration
