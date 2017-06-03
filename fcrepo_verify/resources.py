@@ -31,7 +31,14 @@ class FedoraResource(Resource):
         if head_response.status_code == 200:
             self.is_reachable = True
             self.headers = head_response.headers
-            self.ldp_type = head_response.links["type"]["url"]
+            if inputpath.endswith("/fcr:versions"):
+                # before fcrepo-4.8.0, fcr:versions does have ldp_type in
+                # the header
+                # todo remove when FCREPO-2511 is resolved in all supported
+                # versions of fcrepo4 core.
+                self.ldp_type = "http://www.w3.org/ns/ldp#RDFSource"
+            else:
+                self.ldp_type = head_response.links["type"]["url"]
             self.external = False
         elif head_response.status_code == 307:
             self.is_reachable = True

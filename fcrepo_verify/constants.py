@@ -11,6 +11,9 @@ EXT_MAP = {"application/ld+json":   ".json",
            }
 LDP_NON_RDF_SOURCE = "http://www.w3.org/ns/ldp#NonRDFSource"
 LDP_CONTAINS = "http://www.w3.org/ns/ldp#contains"
+FEDORA_HAS_VERSION = "http://fedora.info/definitions/v4/repository#hasVersion"
+FEDORA_HAS_VERSIONS = \
+    "http://fedora.info/definitions/v4/repository#hasVersions"
 
 EXT_BINARY_INTERNAL = ".binary"
 EXT_BINARY_EXTERNAL = ".external"

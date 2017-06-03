@@ -4,6 +4,7 @@ import datetime
 import sys
 import time
 import threading
+import traceback
 from rdflib.compare import isomorphic
 from bagit import Bag
 
@@ -170,6 +171,7 @@ class FedoraImportExportVerifier:
                             )
 
                 except Exception as ex:
+                    traceback.print_exc()
                     verified = False
                     verification = ("Object could not be verified: {"
                                     "0}".format(ex))

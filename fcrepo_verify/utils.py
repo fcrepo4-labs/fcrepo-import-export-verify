@@ -1,4 +1,4 @@
-from .constants import LDP_CONTAINS, LDP_NON_RDF_SOURCE
+from .constants import LDP_NON_RDF_SOURCE
 from rdflib import Graph, URIRef
 import requests
 import sys
@@ -11,16 +11,12 @@ except ImportError:
 
 def get_child_nodes(node, predicates, auth, logger):
     """Get the children based on specified containment predicates."""
-    # set up containment predicates as specified
-    if 'predicates' is not None:
-        containment_predicates = predicates
-    else:
-        containment_predicates = [LDP_CONTAINS]
     # check the resource
     head = requests.head(url=node, auth=auth)
     if head.status_code in [200, 307]:
         # check if resource is binary and if so return metadata node
-        if head.links["type"]["url"] == LDP_NON_RDF_SOURCE:
+        if hasattr(head, "links") and "type" in head.links and head.links[
+                "type"]["url"] == LDP_NON_RDF_SOURCE:
             metadata = [node + "/fcr:metadata"]
             return metadata
         else:
@@ -29,7 +25,7 @@ def get_child_nodes(node, predicates, auth, logger):
             graph = Graph().parse(data=response.text, format="text/turtle")
             children = []
             # get all the objects of containment triples
-            for cp in containment_predicates:
+            for cp in predicates:
                 predicate = URIRef(cp)
                 children.extend(
                     [str(obj) for obj in graph.objects(subject=None,

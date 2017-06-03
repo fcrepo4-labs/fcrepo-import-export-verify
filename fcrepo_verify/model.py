@@ -1,7 +1,8 @@
 import requests
 import sys
 from urllib.parse import urlparse
-from .constants import EXT_MAP
+from .constants import EXT_MAP, FEDORA_HAS_VERSIONS, FEDORA_HAS_VERSION, \
+    LDP_CONTAINS
 from yaml import load
 try:
     from yaml import CLoader as Loader
@@ -20,6 +21,8 @@ class Config():
         self.output_dir = output_dir
         self.verbose = verbose
         self.bag = False
+        self.versions = False
+        self.predicates = None
 
         with open(configfile, "r") as f:
             yaml_data = f.read()
@@ -60,6 +63,17 @@ class Config():
                 self.lang = value
             elif key == "bag-profile":
                 self.bag = True
+            elif key == "versions":
+                self.versions = value
+
+        # configure default predicates if none specified
+        if self.predicates is None:
+            self.predicates = [LDP_CONTAINS]
+
+        # add version predicates if version option is enabled
+        if self.versions:
+            self.predicates.append(FEDORA_HAS_VERSIONS)
+            self.predicates.append(FEDORA_HAS_VERSION)
 
         # if lang not specified in config, set the ext & lang to turtle
         if not hasattr(self, "lang"):
