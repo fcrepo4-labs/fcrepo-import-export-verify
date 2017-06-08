@@ -35,6 +35,9 @@ class Config():
         # log the key/value pairs loaded from configuration
         console.info("Loaded the following configuration options:")
         pad = max([len(k) for k in opts.keys()])
+        self.mapFrom = None
+        self.mapTo = None
+
         for key, value in opts.items():
             console.info(
                 "  --> {:{align}{pad}} : {}".format(key, value,
@@ -58,7 +61,9 @@ class Config():
             elif key == "dir":
                 self.dir = value
             elif key == "map":
-                self.map = value.split(',')
+                map = value.split(',')
+                self.mapFrom = map[0]
+                self.mapTo = map[1]
             elif key == "binaries":
                 self.bin = value
             elif key == "rdfLang":
@@ -76,6 +81,13 @@ class Config():
         if self.versions:
             self.predicates.append(FEDORA_HAS_VERSIONS)
             self.predicates.append(FEDORA_HAS_VERSION)
+
+        if self.predicates[0] is not LDP_CONTAINS and self.mapTo is not None:
+            loggers.console.warn(
+                    "using a resource mapping when not using the  {0} "
+                    "predicate may result in invalid verification results."
+                    "2}".format(LDP_CONTAINS)
+                    )
 
         # if lang not specified in config, set the ext & lang to turtle
         if not hasattr(self, "lang"):

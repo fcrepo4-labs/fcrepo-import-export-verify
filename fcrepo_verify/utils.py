@@ -2,6 +2,8 @@ from .constants import LDP_NON_RDF_SOURCE
 from rdflib import Graph, URIRef
 import requests
 import sys
+import fileinput
+import tempfile
 
 try:
     from os import scandir
@@ -46,3 +48,16 @@ def get_data_dir(config):
     """Returns the root directory containing serialized fedora objects
     based on the configuration."""
     return config.dir if not config.bag else config.dir + "/data"
+
+
+def replace_strings_in_file(file, find_str, replace_str):
+    """Returns the path of temp file containing the replaced values"""
+    temp = tempfile.mkstemp()
+    path = temp[1]
+    with open(path, "w") as dest:
+        with fileinput.input(files=file) as f:
+            for line in f:
+                line = line.replace(find_str, replace_str)
+                dest.write(line)
+
+    return path

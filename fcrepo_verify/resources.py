@@ -4,10 +4,11 @@ from rdflib import Graph
 from re import search
 import requests
 import sys
+import os
 from urllib.parse import urlparse, quote
 from .constants import EXT_BINARY_INTERNAL, EXT_BINARY_EXTERNAL, \
     LDP_NON_RDF_SOURCE
-from .utils import get_data_dir
+from .utils import get_data_dir, replace_strings_in_file
 
 
 class Resource(object):
@@ -18,6 +19,9 @@ class Resource(object):
         self.logger = logger
         self.data_dir = get_data_dir(config)
 
+    def fetch_headers(self, origpath, auth):
+        return requests.head(url=origpath, auth=auth)
+
 
 class FedoraResource(Resource):
     """Properties and methods for a resource in a Fedora repository."""
@@ -25,7 +29,7 @@ class FedoraResource(Resource):
         Resource.__init__(self, inputpath, config, logger)
         self.location = "fedora"
         self.relpath = urlparse(self.origpath).path.rstrip("/")
-        head_response = self.fetch_headers()
+        head_response = self.fetch_headers(self.origpath, self.config.auth)
 
         # handle various HTTP responses
         if head_response.status_code == 200:
@@ -76,9 +80,6 @@ class FedoraResource(Resource):
                     data=response.text, format="text/turtle"
                     )
 
-    def fetch_headers(self):
-        return requests.head(url=self.origpath, auth=self.config.auth)
-
     def is_binary(self):
         return self.ldp_type == LDP_NON_RDF_SOURCE
 
@@ -99,8 +100,10 @@ class LocalResource(Resource):
         Resource.__init__(self, inputpath, config, logger)
         self.location = "local"
         self.relpath = self.origpath[len(self.data_dir):]
-        urlinfo = urlparse(config.repo)
-        config_repo = urlinfo.scheme + "://" + urlinfo.netloc
+
+        self.mapfrom = self.config.mapFrom
+        self.mapto = self.config.mapTo
+
         self.type = "unknown"
 
         if self.is_binary():
@@ -110,24 +113,51 @@ class LocalResource(Resource):
                 self.external = True
 
             if self.external:
-                self.destpath = config_repo + \
-                        self.relpath[:-len(EXT_BINARY_EXTERNAL)]
+                self.destpath = self._resolve_dest_path(EXT_BINARY_EXTERNAL)
             else:
-                self.destpath = config_repo + \
-                        self.relpath[:-len(EXT_BINARY_INTERNAL)]
-
+                self.destpath = self._resolve_dest_path(EXT_BINARY_INTERNAL)
             self.sha1 = self.calculate_sha1()
         elif self.origpath.startswith(self.data_dir) and \
                 self.origpath.endswith(config.ext):
             self.type = "rdf"
-            self.destpath = config_repo + self.relpath[:-len(config.ext)]
+            self.destpath = self._resolve_dest_path(config.ext)
+
+            # replace mapfrom with mapto if mapped otherwise load origpath
+            localfilepath = self.origpath
+
+            if self.config.mapFrom is not None:
+                localfilepath = replace_strings_in_file(self.origpath,
+                                                        self.mapfrom,
+                                                        self.mapto)
+
             self.graph = Graph().parse(
-                location=self.origpath, format=config.lang
+                location=localfilepath, format=config.lang
                 )
+
+            if self.config.mapFrom is not None:
+                os.remove(localfilepath)
+
         else:
             msg = "RDF resource lacks expected extension!".format(
                     self.origpath)
             self.logger.error(msg)
+
+    def _resolve_dest_path(self, suffix):
+
+        # remove suffix of relpath
+        relative_path = self.relpath[:-len(suffix)]
+        # if mapped
+        if self.mapfrom is not None:
+            # reconstruct source uri
+            sourceuri = self._get_base_uri(urlparse(self.mapfrom)) + \
+                relative_path
+            return sourceuri.replace(self.mapfrom, self.mapto)
+        else:
+            desturlinfo = urlparse(self.config.repo)
+            return self._get_base_uri(desturlinfo) + relative_path
+
+    def _get_base_uri(self, urlinfo):
+        return urlinfo.scheme + "://" + urlinfo.netloc
 
     def is_binary(self):
         if self.origpath.endswith(EXT_BINARY_INTERNAL) or \
