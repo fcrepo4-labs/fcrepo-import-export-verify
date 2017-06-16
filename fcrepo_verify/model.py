@@ -37,7 +37,7 @@ class Config():
         pad = max([len(k) for k in opts.keys()])
         self.mapFrom = None
         self.mapTo = None
-
+        self.external = False
         for key, value in opts.items():
             console.info(
                 "  --> {:{align}{pad}} : {}".format(key, value,
@@ -72,6 +72,8 @@ class Config():
                 self.bag = True
             elif key == "versions":
                 self.versions = value
+            elif key == "external":
+                self.external = value
 
         # configure default predicates if none specified
         if self.predicates is None:

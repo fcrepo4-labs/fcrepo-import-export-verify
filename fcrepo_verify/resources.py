@@ -1,11 +1,13 @@
 from __future__ import print_function
 from hashlib import sha1
 from rdflib import Graph
-from re import search
+import re
 import requests
 import sys
 import os
+import ssl
 from urllib.parse import urlparse, quote
+from urllib.request import urlopen
 from .constants import EXT_BINARY_INTERNAL, EXT_BINARY_EXTERNAL, \
     LDP_NON_RDF_SOURCE
 from .utils import get_data_dir, replace_strings_in_file
@@ -21,6 +23,15 @@ class Resource(object):
 
     def fetch_headers(self, origpath, auth):
         return requests.head(url=origpath, auth=auth)
+
+    def _calculate_sha1(self, stream):
+        sh = sha1()
+        while True:
+            data = stream.read(8192)
+            if not data:
+                break
+            sh.update(data)
+        return sh.hexdigest()
 
 
 class FedoraResource(Resource):
@@ -60,7 +71,15 @@ class FedoraResource(Resource):
         if self.is_binary():
             self.type = "binary"
             self.metadata = self.origpath + "/fcr:metadata"
-            self.sha1 = self.lookup_sha1()
+
+            if self.external:
+                content_type = self.headers["Content-Type"]
+                p = re.compile('.*url=\"(.*)\"')
+                url = p.match(content_type).group(1)
+                self.sha1 = self._calculate_sha1_from_uri(url)
+            else:
+                self.sha1 = self.lookup_sha1()
+
             if self.external:
                 self.destpath = quote(
                     (self.data_dir + self.relpath + EXT_BINARY_EXTERNAL)
@@ -87,11 +106,17 @@ class FedoraResource(Resource):
         result = ""
         response = requests.get(self.metadata, auth=self.config.auth)
         if response.status_code == 200:
-            m = search(
+            m = re.search(
                 r"premis:hasMessageDigest[\s]+<urn:sha1:(.+?)>", response.text
                 )
             result = m.group(1) if m else ""
+
         return result
+
+    def _calculate_sha1_from_uri(self, uri):
+        gc_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+        with urlopen(uri, context=gc_context) as u:
+            return self._calculate_sha1(u)
 
 
 class LocalResource(Resource):
@@ -116,7 +141,7 @@ class LocalResource(Resource):
                 self.destpath = self._resolve_dest_path(EXT_BINARY_EXTERNAL)
             else:
                 self.destpath = self._resolve_dest_path(EXT_BINARY_INTERNAL)
-            self.sha1 = self.calculate_sha1()
+            self.sha1 = self._calculate_sha1_from_file(self.origpath)
         elif self.origpath.startswith(self.data_dir) and \
                 self.origpath.endswith(config.ext):
             self.type = "rdf"
@@ -166,12 +191,6 @@ class LocalResource(Resource):
         else:
             return False
 
-    def calculate_sha1(self):
-        with open(self.origpath, "rb") as f:
-            sh = sha1()
-            while True:
-                data = f.read(8192)
-                if not data:
-                    break
-                sh.update(data)
-        return sh.hexdigest()
+    def _calculate_sha1_from_file(self, file_path):
+        with open(file_path, "rb") as f:
+            return self._calculate_sha1(f)

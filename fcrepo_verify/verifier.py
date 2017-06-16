@@ -142,8 +142,9 @@ class FedoraImportExportVerifier:
                     # analyze the resource type
                     if original.type == "binary":
                         if destination.origpath.endswith(EXT_BINARY_EXTERNAL):
-                            verified = False
-                            verification = "external resource"
+                            if not self.config.external:
+                                continue
+
                         if original.sha1 == destination.sha1:
                             verified = True
                             verification = original.sha1
