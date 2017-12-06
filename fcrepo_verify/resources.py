@@ -9,7 +9,7 @@ import ssl
 from urllib.parse import urlparse, quote
 from urllib.request import urlopen
 from .constants import EXT_BINARY_INTERNAL, EXT_BINARY_EXTERNAL, \
-    LDP_NON_RDF_SOURCE
+    LDP_NON_RDF_SOURCE, MINIMAL_HEADER
 from .utils import get_data_dir, replace_strings_in_file
 
 
@@ -61,7 +61,7 @@ class FedoraResource(Resource):
             self.headers = head_response.headers
             self.ldp_type = head_response.links["type"]["url"]
             self.external = True
-        elif head_response.status_code in [401, 403, 404]:
+        elif head_response.status_code in [401, 403, 404, 405]:
             self.is_reachable = False
             self.type = "unknown"
         else:
@@ -95,13 +95,28 @@ class FedoraResource(Resource):
                 (self.data_dir + self.relpath + self.config.ext)
                 )
             response = requests.get(self.origpath, auth=self.config.auth)
-            if response.status_code == 200:
+            minimal_resp = requests.get(
+                self.origpath, auth=self.config.auth, headers=MINIMAL_HEADER
+                )
+            if response.status_code == 200 and minimal_resp.status_code == 200:
                 self.graph = Graph().parse(
                     data=response.text, format="text/turtle"
                     )
+                self.minimal = Graph().parse(
+                    data=minimal_resp.text, format="text/turtle"
+                    )
+                self.server_managed = self.graph - self.minimal
+            else:
+                self.console.error("Cannot verify RDF resource!")
 
     def is_binary(self):
         return self.ldp_type == LDP_NON_RDF_SOURCE
+
+    def filter_binary_refs(self):
+        for (s, p, o) in self.graph:
+            if o.startswith(self.config.repobase) and \
+                    FedoraResource(o, self.config, self.logger).is_binary():
+                self.graph.remove((s, p, o))
 
     def lookup_sha1(self):
         result = ""
